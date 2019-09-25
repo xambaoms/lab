@@ -15,6 +15,7 @@ This lab guide how to build a basic Virtual WAN infrastructure including simulat
 
 <span style="color:blue;font-size:1.2em">**Azure Virtual WAN Lab Architecture** </span>
 
-(/images/logo.png)
+![Virtual WAN](/images/virtualwan1.png)
+
 
 **Create the VWAN hub that allows on prem to on prem to hairpin through the tunnel. The address space used should not overlap. VWAN deploys 2 "appliances" as well as a number of underlying components. We're starting here as the last command can take 30+ minutes to deploy. By specifying "--no-wait", you can move on to other steps while this section of VWAN continues to deploy in the background. **
