@@ -6,6 +6,7 @@ This lab guide how to build a basic Virtual WAN infrastructure including simulat
 
 - A valid Azure subscription account. If you don’t have one, you can create your free azure account (https://azure.microsoft.com/en-us/free/) today.
 - Latest Azure CLI, follow these instructions to install: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli
+- Azure Virtual WAN Concepts: https://docs.microsoft.com/en-us/azure/virtual-wan/virtual-wan-global-transit-network-architecture
 
    
 > [!NOTE]
