@@ -6,15 +6,22 @@ This lab guide how to build a basic Virtual WAN infrastructure including simulat
 
 - A valid Azure subscription account. If you don’t have one, you can create your free azure account (https://azure.microsoft.com/en-us/free/) today.
 - Latest Azure CLI, follow these instructions to install: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli
-- 
+
    
 > [!NOTE]
 > - Azure CLI and Cloud Shell for VWAN are in preview and require the "virtual-wan" extension. You can view the extensions by running "az extension list-available --output table". Install the extension "az extension add --name virtual-wan".
 
 
-<span style="color:blue;font-size:2em">**Azure Virtual WAN Lab Architecture** </span>
+<span style="font-size:2em">**Azure Virtual WAN Lab Architecture** </span>
 
 ![Virtual WAN](./images/virtualwan1.png#center)
 
 
-**Create the VWAN hub that allows on prem to on prem to hairpin through the tunnel. The address space used should not overlap. VWAN deploys 2 "appliances" as well as a number of underlying components. We're starting here as the last command can take 30+ minutes to deploy. By specifying "--no-wait", you can move on to other steps while this section of VWAN continues to deploy in the background. **
+Create the Virtual WAN hub that allows on prem to on prem to hairpin through the tunnel. The address space used should not overlap. VWAN deploys 2 "appliances" as well as a number of underlying components. We're starting here as the last command can take 30+ minutes to deploy. By specifying "--no-wait", you can move on to other steps while this section of VWAN continues to deploy in the background. 
+
+```Azure CLI
+az group create --name VWANWEST --location westus2
+az network vwan create --name VWANWEST --resource-group VWANWEST --branch-to-branch-traffic true --location westus2 --vnet-to-vnet-traffic true
+az network vhub create --address-prefix 192.168.0.0/24 --name VWANWEST --resource-group VWANWEST --vwan VWANWEST --location westus2
+az network vpn-gateway create --name VWANWEST --resource-group VWANWEST --vhub VWANWEST --location westus2 --no-wait
+```
