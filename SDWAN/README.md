@@ -1,12 +1,12 @@
 ## Azure Networking Lab - Azure Virtual WAN - Site to Site VPN with Windows RRAS 
 
-This lab guide how to build a basic Virtual WAN infrastructure including simulated on prem sites (no hardware needed). This is for testing purposes only and should not be considered production configurations. The lab builds two "on prem" VNETs allowing you to simulate your infrastructure. The two on prem sites connect to the VWAN hub via an IPSEC/IKEv2 tunnel that is also connected to two VNETs. At the end of the lab, the two on prem sites will be able to talk to the VNETs as well as each other through the tunnel. The base infrastructure configurations for the on prem environments will not be described in detail. The main goal is to quickly build a test VWAN environment so that you can overlay 3rd party integration tools if needed. You only need to access the portal to download the configuration file of VWAN to determine the public IPs of the VPN gateways. All other configs are done in Azure CLI and/or Windows RRASS so you can change them as needed to match your environment.
+This lab will illustrate how to build a basic Virtual WAN infrastructure including simulated on-premise datacenter (no hardware needed). This is for testing purposes only and should not be considered production configurations. The lab builds"on prem" VNETs allowing you to simulate your infrastructure. The two on prem sites connect to the VWAN hub via an IPSEC/IKEv2 tunnel that is also connected to two VNETs. At the end of the lab, the two on prem sites will be able to talk to the VNETs as well as each other through the tunnel. The base infrastructure configurations for the on prem environments will not be described in detail. The main goal is to quickly build a test VWAN environment so that you can overlay 3rd party integration tools if needed. You only need to access the portal to download the configuration file of VWAN to determine the public IPs of the VPN gateways. All other configs are done in Azure CLI and/or Windows RRASS so you can change them as needed to match your environment.
 
 **Requirements:**
 
 - A valid Azure subscription account. If you don’t have one, you can create your free azure account (https://azure.microsoft.com/en-us/free/) today.
 - Latest Azure CLI, follow these instructions to install: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli
-- Azure Virtual WAN Concepts: https://docs.microsoft.com/en-us/azure/virtual-wan/virtual-wan-global-transit-network-architecture
+- Check out the Azure Virtual WAN Concepts: https://docs.microsoft.com/en-us/azure/virtual-wan/virtual-wan-global-transit-network-architecture
 
    
 > [!NOTE]
@@ -21,9 +21,9 @@ This lab guide how to build a basic Virtual WAN infrastructure including simulat
 Create the Virtual WAN hub that allows on prem to on prem to hairpin through the tunnel. The address space used should not overlap. VWAN deploys 2 "appliances" as well as a number of underlying components. We're starting here as the last command can take 30+ minutes to deploy. By specifying "--no-wait", you can move on to other steps while this section of VWAN continues to deploy in the background. 
 
 ```Azure CLI
-az group create --name VWANWEST --location westus2
-az network vwan create --name VWANWEST --resource-group VWANWEST --branch-to-branch-traffic true --location westus2 --vnet-to-vnet-traffic true
-az network vhub create --address-prefix 192.168.0.0/24 --name VWANWEST --resource-group VWANWEST --vwan VWANWEST --location westus2
-az network vpn-gateway create --name VWANWEST --resource-group VWANWEST --vhub VWANWEST --location westus2 --no-wait
+az group create --name LAB-EASTUS2VWAN-RG --location eastus2
+az network vwan create --name EASTUS2VWAN --resource-group LAB-EASTUS2VWAN-RG --branch-to-branch-traffic true --location eastus2 --vnet-to-vnet-traffic true
+az network vhub create --address-prefix 192.168.0.0/24 --name EASTUS2VWANHUB --resource-group LAB-EASTUS2VWAN-RG --vwan EASTUS2VWAN --location eastus2
+az network vpn-gateway create --name EASTUS2VWAN --resource-group LAB-EASTUS2VWAN-RG --vhub EASTUS2VWANHUB --location eastus2 --no-wait
 ```
-Deploy the infrastructure for  on prem DC1 (10.100.0.0/16). This builds out all of the VNET/subnet/routing/VMs needed to simulate on prem including a WIndows RRASS and test Windows machine
+Deploy the infrastructure for on-premise DC (192.168.0.0/16). This builds out all of the VNET/subnet/routing/VMs needed to simulate on prem including a Windows RRASS and test Windows machine
