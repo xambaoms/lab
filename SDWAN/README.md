@@ -26,3 +26,4 @@ az network vwan create --name VWANWEST --resource-group VWANWEST --branch-to-bra
 az network vhub create --address-prefix 192.168.0.0/24 --name VWANWEST --resource-group VWANWEST --vwan VWANWEST --location westus2
 az network vpn-gateway create --name VWANWEST --resource-group VWANWEST --vhub VWANWEST --location westus2 --no-wait
 ```
+Deploy the infrastructure for  on prem DC1 (10.100.0.0/16). This builds out all of the VNET/subnet/routing/VMs needed to simulate on prem including a WIndows RRASS and test Windows machine
