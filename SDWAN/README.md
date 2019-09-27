@@ -24,7 +24,7 @@ Create the Virtual WAN hub that allows on prem to on prem to hairpin through the
 # Azure Virtual WAN
 az group create --name LAB-EASTUS2VWAN-RG --location eastus2
 az network vwan create --name EASTUS2VWAN --resource-group LAB-EASTUS2VWAN-RG --branch-to-branch-traffic true --location eastus2 --vnet-to-vnet-traffic true
-az network vhub create --address-prefix 192.168.0.0/24 --name EASTUS2VWANHUB --resource-group LAB-EASTUS2VWAN-RG --vwan EASTUS2VWAN --location eastus2
+az network vhub create --address-prefix 172.16.0.0/24 --name EASTUS2VWANHUB --resource-group LAB-EASTUS2VWAN-RG --vwan EASTUS2VWAN --location eastus2
 az network vpn-gateway create --name EASTUS2VWAN-VPNGW --resource-group LAB-EASTUS2VWAN-RG --vhub EASTUS2VWANHUB --location eastus2 --no-wait
 ```
 
@@ -72,7 +72,7 @@ az network public-ip create --name azwsserver2-pip --resource-group LAB-VNET02-R
 az network nic create --resource-group LAB-VNET02-RG -n azwsserver2-nic --location eastus2 --subnet inside --vnet-name LAB-VNET02 --public-ip-address azwsserver2-pip --private-ip-address 10.1.1.4
 az vm create -n azwsservervm2 -g LAB-VNET02-RG --image win2016datacenter --admin-username azureuser --admin-password Msft@123456@ --nics azwsserver2-nic --no-wait
 ```
-Build a connection between the VWAN VNET01/VNET02. Repplace the **XX** with your subscription ID.
+Build a connection between the VWAN and VNET01/VNET02. **Replace the ***XX*** with your subscription ID.**
 
 ```Azure CLI
 ## Virtual WAN - HUB Connect with VNETs
@@ -90,4 +90,48 @@ Build a VPN site and connection between VWAN and the datacenter1 (RRAS). **Repla
 az network vpn-site create --ip-address 52.179.170.30 --name LAB-SITE-DC1 --resource-group LAB-EASTUS2VWAN-RG --address-prefixes 192.168.0.0/16 --virtual-wan EASTUS2VWAN
 az network vpn-gateway connection create --gateway-name EASTUS2VWAN --name LAB-CONN-DC1 --remote-vpn-site LAB-SITE-DC1 --resource-group LAB-EASTUS2VWAN-RG --protocol-type IKEv2 --shared-key @Msft12345@
 ```
-**At this time, you must download the VWAN configuration in order to display the 2 public IP addresses for the VPN gateways in Azure. In the portal, search for or go to Virtual WANs, select EASTUS2VWAN, select "Download VPN configuration" at the top of the overview page. This will drop the configuration into a storage account. Download the file and document the IPs for Instance0 and Instance1 (VWAN VPN gateway public IPs). ** Sample output: -gatewayConfiguration: Instance0: x.x.x.1, Instance1: x.x.x.2
+> [!IMPORTANT]
+> At this time, you must download the VWAN configuration in order to display the 2 public IP addresses for the VPN gateways in Azure. In the portal, search for or go to Virtual WANs, select EASTUS2VWAN, select "Download VPN configuration" at the top of the overview page. This will drop the configuration into a storage account. Download the file and document the IPs for Instance0 and Instance1 (VWAN VPN gateway public IPs). ** Sample output: -gatewayConfiguration: Instance0: x.x.x.1, Instance1: x.x.x.2
+
+Make the connection between RRAS and VPN Site, follow the below steps. 
+
+ 1. Replace "Instance0" and "Instance1" with the public IP addresses from the downloaded configuration.
+ 2. Install RRAS role in RRAS vm. (Connect to RRAS vm)
+   ```Powershell
+    ## Powershell
+     Install-WindowsFeature RemoteAccess 
+     Install-WindowsFeature RSAT-RemoteAccess-PowerShell
+     Install-WindowsFeature RSAT-RemoteAccess
+     Install-WindowsFeature Routing 
+   ```
+ 3. Setup VPN in RRAS vm. **(In the below steps)**
+      1.  After the install of the Remote Access role is complete, open up Routing and Remote Acces.
+      2.  Right-click the RRAS-Server and click Configure and Enable Routing and Remote Acess.
+      3.  Welcome to the Routing and Remote Access Server Setup Wizard: Click Next.
+      4.  Configuration: Select Secure connection between two private networks, Click Next.
+      5.  Demand-Dial Connections: Select Yes, click Next.
+      6.  IP Address Assignment: Select Automatically, click Next.
+      7.  Completing the Routing and Remote Access Server Setup Wizard: Click Finish.
+      8.  (The Demand-Dial Interface Wizard will appear) - Welcome to the Demand-Dial Interface Wizard: Click Next.
+      9.  Interface Name: Type in Azure S2S - Instance0 **(You can use Instance1 to another interface)**, click Next.
+      10. Connection Type: Select Connect using virtual private network (VPN), click Next.
+      11. VPN Type: Select IKEv2, click Next.
+      12. Destination Address: Enter in the Public IP address of the Instance0 , click Next.
+      13. Protocols and Security: Check Route IP packets on this interface, click Next.
+      14. Static Routes for Remote Networks: Click Add
+         - Static Route: Select Remote Network Support using IPv4:
+             - 10.0.0.0 255.255.0.0 Metric 24
+             - 10.1.0.0 255.255.0.0 Metric 24
+      15. Dial-Out Credentials: Type Azure for the User name, click Next.
+      16. Completing the Demand-Dial Interface Wizard: Click Finish.
+      
+     **Create new interface in Network Interfaces and repeat the steps 9 to 16.**  
+
+In the Routing and Remote Access window select RRAS-Server -> Network Interfaces. Right-click on Azure S2S - Instance0/1 and select Properties. Select the Security tab and under Authentication select Use preshared key for authentication. (@Msft12345@) Click OK.
+
+ 4. Enable ICMP packets for vms in VNET01/VNET02. (Use powershell in each vm).  
+     ```Powershell
+     ## Powershell
+     New-NetFirewallRule -DisplayName "Allow inbound ICMPv4" -Direction Inbound -Protocol ICMPv4 -Icmp Type 8 -Action Allow
+     ```
+Try to ping vms between on-premisse enviroment and Azure VNET01/VNET02.
