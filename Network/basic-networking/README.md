@@ -1,16 +1,14 @@
 # Azure Networking hands-on lab step-by-step
 
-## Abstract and learning objectives
-
-In this hands-on lab, you will setup and configure virtual networks in a secure hub-and-spoke design. You will also learn how to secure virtual networks by implementing Azure Firewall, network security groups and application security groups, as well as configure route tables on the subnets in your virtual network. Additionally, you will set up access to the virtual network via a jump box and provision a site-to-site VPN connection from another virtual network, providing emulation of hybrid connectivity from an on-premises environment.
-
-At the end of this hands-on lab, you will be better able to configure Azure networking components.
-
 ## Overview
 
-You have been asked by Woodgrove Financial Services to provision a proof of concept deployment that will be used by the Woodgrove team to gain familiarity with a complex Virtual Networking deployment, including all of the components that enable the solution. Specifically, the Woodgrove team will be learning:
+ In this hands-on lab, you will setup a virtual networks in a hub-and-spoke design. You will also learn how to secure virtual networks by implementing Azure Firewall, network security groups and application security groups, as well as configure route tables on the subnets in your virtual network. Additionally, you will set up access to the virtual network via a jump box and provision a site-to-site VPN connection from another virtual network, providing emulation of hybrid connectivity from an on-premises environment.
+
+At the end of this hands-on lab, you will be better able to configure Azure networking components and you will be learning:
 
 -   How to bypass system routing to accomplish custom routing scenarios.
+
+- How to setup and configure a virtual network and subnets on Azure
 
 -   How to capitalize on load balancers to distribute load and ensure service availability.
 
@@ -22,13 +20,13 @@ You have been asked by Woodgrove Financial Services to provision a proof of conc
 
 The result of this proof of concept will be an environment resembling this diagram:
 
-## Solution Architecture
+## Network Architecture
 
-![This image represents an entire overview of an environment for the result of this proof of concept.](images/Hands-onlabstep-by-step-Enterprise-classnetworkinginAzureimages/media/image200.png "Solution Architecture")
+
 
 ## Requirements
 
-You must have a working Azure subscription to carry out this hands-on lab step-by-step.
+- Valid the Azure subscription account. If you don’t have one, you can create your free azure account (https://azure.microsoft.com/en-us/free/).
 
 ## Help references
 
@@ -51,6 +49,9 @@ You must have a working Azure subscription to carry out this hands-on lab step-b
 Duration: 15 minutes
 
 ### Task 1: Create a Virtual Network
+
+Reference:
+Virtual Network documentation  | <https://azure.microsoft.com/en-us/documentation/services/virtual-network/>  |
 
 1.  From your **LABVM**, connect to the Azure portal, select **+ Create a resource**, and in the list of Marketplace categories, select **Networking** followed by selecting **Virtual Network**.
 
