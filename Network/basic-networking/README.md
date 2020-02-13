@@ -22,27 +22,11 @@ The result of this proof of concept will be an environment resembling this diagr
 
 ## Network Architecture
 
-
+![Network Architecture](./images/basic-network.png)
 
 ## Requirements
 
 - Valid the Azure subscription account. If you don’t have one, you can create your free azure account (https://azure.microsoft.com/en-us/free/).
-
-## Help references
-
-|    |            |
-|----------|:-------------:|
-| **Description** | **Links** |
-| IP Addressing and Subnetting for New Users   | http://www.cisco.com/c/en/us/support/docs/ip/routing-information-protocol-rip/13788-3.html  |
-| CIDR / VLSM Supernet Calculator  | <http://www.subnet-calculator.com/cidr.php>  |
-| Virtual Network documentation  | <https://azure.microsoft.com/en-us/documentation/services/virtual-network/>  |
-| Network Security Group documentation  | <https://azure.microsoft.com/en-us/documentation/articles/virtual-networks-nsg/>  |
-| IP addresses in Azure      |  https://azure.microsoft.com/en-us/documentation/articles/virtual-network-ip-addresses-overview-arm/ |
-| User-Defined Routing and IP Forwarding   | <https://azure.microsoft.com/en-us/documentation/articles/virtual-networks-udr-overview/>  |
-| Load Balancer       | <https://azure.microsoft.com/en-us/documentation/articles/load-balancer-overview/>  |
-| Implementing a DMZ between Azure and your on-premises data center    |  <https://azure.microsoft.com/en-us/documentation/articles/guidance-iaas-ra-secure-vnet-hybrid/>  |
-| What is Azure Firewall?    |  <https://docs.microsoft.com/en-us/azure/firewall/overview/>  |
-| Security groups    |  <https://docs.microsoft.com/en-us/azure/virtual-network/security-overview/>  |
 
 ## Exercise 1: Create a Virtual Network and provision subnets
 
