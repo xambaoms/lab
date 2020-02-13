@@ -22,7 +22,9 @@ The result of this proof of concept will be an environment resembling this diagr
 
 ## Network Architecture
 
-![Network Architecture](./images/basic-network.png)
+![Network Architecture](./images/basic_network.png)
+
+![image info](./pictures/image.png)
 
 ## Requirements
 
