@@ -6,64 +6,133 @@
 
 At the end of this hands-on lab, you will be better able to configure Azure networking components and you will be learning:
 
--   How to bypass system routing to accomplish custom routing scenarios.
+- How to bypass system routing to accomplish custom routing scenarios.
 
 - How to setup and configure a virtual network and subnets on Azure
 
--   How to capitalize on load balancers to distribute load and ensure service availability.
+- How to capitalize on load balancers to distribute load and ensure service availability.
 
--   How to implement Azure Firewall to control hybrid and cross-virtual network traffic flow based on policies.
+- How to implement Azure Firewall to control hybrid and cross-virtual network traffic flow based on policies.
 
--   How to implement a combination of Network Security Groups (NSGs) and Application Security Groups (ASGs) to control traffic flow within virtual networks.
+- How to implement a combination of Network Security Groups (NSGs) and Application Security Groups (ASGs) to control traffic flow within virtual networks.
 
--   How to monitor network traffic for proper route configuration and trouble shooting.
-
-The result of this proof of concept will be an environment resembling this diagram:
+- How to monitor network traffic for proper route configuration and troubleshooting.
 
 ## Network Architecture
 
 ![Network Architecture](./images/basic_network.png)
 
-![image info](./pictures/image.png)
-
 ## Requirements
 
 - Valid the Azure subscription account. If you don’t have one, you can create your free azure account (https://azure.microsoft.com/en-us/free/).
 
-## Exercise 1: Create a Virtual Network and provision subnets
+## Exercise 1: Create a virtual network and provision subnets
 
-Duration: 15 minutes
+Duration: 20 minutes
 
-### Task 1: Create a Virtual Network
+### Task 1: Create a Virtual Network and Configure Subnets
 
-Reference:
-Virtual Network documentation  | <https://azure.microsoft.com/en-us/documentation/services/virtual-network/>  |
+**Reference:**</br>
+Virtual Network documentation</br>
+<https://azure.microsoft.com/en-us/documentation/services/virtual-network/>  
 
-1.  From your **LABVM**, connect to the Azure portal, select **+ Create a resource**, and in the list of Marketplace categories, select **Networking** followed by selecting **Virtual Network**.
+
+**Create a virtual networks using the Azure portal**</br>
+
+1.  Connect to the Azure portal, select **+ Create a resource**, and in the list of Marketplace categories, select **Networking** followed by selecting **Virtual Network**.
+
+** Azure - Hub Virtual Network**
 
 2.  On the **Create virtual network** blade, enter the following information:
 
-    -  Name: **WGVNet1**
+    -  Name: **hubvnet**
 
-    -  Address space: **10.7.0.0/20**
+    -  Address space: **10.0.1.0/20**
 
     -  Subscription: **Select your subscription**.
 
-    -  Resource group: Select **Create new**, and enter the name **WGVNetRG1**.
+    -  Resource group: Click on **Create new**, and enter the name **networking-handson-rg**.
 
-    -  Location: **(US) South Central US**
+    -  Location: **(US) Esat US 2**
 
     -  Subnet name: **GatewaySubnet** (This name is fixed and cannot be changed.)
 
-    -  Subnet address range: **10.7.0.0/29**
+    -  Subnet address range: **10.0.1.0/27**
 
-3.  Leave the other options as default for now.
+    -  Subnet name: **websubnet** 
 
-4.  Upon completion, it should look like the following screenshot. Validate the information is correct, and select **Create**.
+    -  Subnet address range: **10.0.2.0/24**
+    
+</br>
 
-    ![The create virtual network dialog is displayed.](images/Hands-onlabstep-by-step-Enterprise-classnetworkinginAzureimages/media/image26.png "Create virtual network")
+![The create virtual network dialog is displayed.](./images/virtual-network-create-hub.png)
 
-5.  Monitor the deployment status by selecting **Notifications Bell** at the top of the portal. In a minute or so, you should see a confirmation of the successful deployment. Select **Go to Resource**.
+</br>
+
+3.  Upon completion, it should look like the following screenshot. Validate the information is correct, and select **Create**.
+
+4.  Monitor the deployment status by selecting **Notifications Bell** at the top of the portal. In a minute or so, you should see a confirmation of the successful deployment. Select **Go to Resource**.
+
+** Azure - Spoke Virtual Network**
+
+5. **Repeat step 1 and 2**, enter the following information:
+
+
+    -  Name: **spokevnet**
+
+    -  Address space: **10.1.0.0/16**
+
+    -  Subscription: **Select your subscription**.
+
+    -  Resource group: Select **networking-handson-rg**.
+
+    -  Location: **(US) Esat US 2**
+
+    -  Subnet name: **backendSubnet** 
+
+    -  Subnet address range: **10.1.1.0/24**
+
+    </br>
+
+![The create virtual network dialog is displayed.](./images/virtual-network-create-spoke.png)
+
+</br>
+
+6.  Upon completion, it should look like the following screenshot. Validate the information is correct, and select **Create**.
+
+7.  Monitor the deployment status by selecting **Notifications Bell** at the top of the portal. In a minute or so, you should see a confirmation of the successful deployment. Select **Go to Resource**.
+
+** Onpremisses Virtual Network**
+
+5. **Repeat step 1 and 2**, enter the following information:
+
+
+    -  Name: **onpremvnet**
+
+    -  Address space: **192.168.0.0/16**
+
+    -  Subscription: **Select your subscription**.
+
+    -  Resource group: Select **networking-handson-rg**.
+
+    -  Location: **(US) Esat US 2**
+
+    -  Subnet name: **onpremSubnet** 
+
+    -  Subnet address range: **192.168.1.0/24**
+
+    </br>
+
+![The create virtual network dialog is displayed.](./images/virtual-network-create-onprem.png)
+
+</br>
+
+6.  Upon completion, it should look like the following screenshot. Validate the information is correct, and select **Create**.
+
+7.  Monitor the deployment status by selecting **Notifications Bell** at the top of the portal. In a minute or so, you should see a confirmation of the successful deployment. Select **Go to Resource**.
+
+
+**More Information, check out:** https://docs.microsoft.com/en-us/azure/virtual-network/quick-create-portal
 
 ### Task 2: Configure subnets
 
