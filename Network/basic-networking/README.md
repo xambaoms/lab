@@ -37,11 +37,13 @@ Virtual Network documentation</br>
 <https://azure.microsoft.com/en-us/documentation/services/virtual-network/>  
 
 
-**Create a virtual networks using the Azure portal**</br>
+#### First Option: Create a virtual networks using the Azure portal.
+
+> **More Information:** https://docs.microsoft.com/en-us/azure/virtual-network/quick-create-portal
 
 1.  Connect to the Azure portal, select **+ Create a resource**, and in the list of Marketplace categories, select **Networking** followed by selecting **Virtual Network**.
 
-** Azure - Hub Virtual Network**
+**Azure - Hub Virtual Network**
 
 2.  On the **Create virtual network** blade, enter the following information:
 
@@ -132,7 +134,21 @@ Virtual Network documentation</br>
 7.  Monitor the deployment status by selecting **Notifications Bell** at the top of the portal. In a minute or so, you should see a confirmation of the successful deployment. Select **Go to Resource**.
 
 
-**More Information, check out:** https://docs.microsoft.com/en-us/azure/virtual-network/quick-create-portal
+#### Second Option: Create a virtual networks using the Azure Cloud Shell.
+
+> **More Information:** https://docs.microsoft.com/en-us/azure/virtual-network/quick-create-portal
+
+1. To start Azure Cloud Shell:
+
+    **Options:**
+
+- Select the Cloud Shell button on the menu bar at the upper right in the Azure portal. ->
+
+    ![](./images/hdi-cloud-shell-menu.png)
+
+
+
+
 
 ### Task 2: Configure subnets
 
