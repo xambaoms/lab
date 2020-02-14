@@ -49,7 +49,7 @@ Virtual Network documentation</br>
 
     -  Name: **hubvnet**
 
-    -  Address space: **10.0.1.0/20**
+    -  Address space: **10.0.0.0/16**
 
     -  Subscription: **Select your subscription**.
 
@@ -146,9 +146,25 @@ Virtual Network documentation</br>
 
     ![](./images/hdi-cloud-shell-menu.png)
 
+- Wait the windows apear and enter into the prompt with the following information:
 
+```Azure CLI
+** Virtual Network - HUB **
+az group create --name networking-handson-rg --location eastus2
+az network vnet create --resource-group networking-handson-rg --name hubvnet --location eastus2 --address-prefixes 10.0.0.0/16 --subnet-name GatewaySubnet --subnet-prefix 10.0.1.0/27
+az network vnet subnet create --address-prefix 10.0.2.0/24 --name websubnet --resource-group networking-handson-rg --vnet-name hubvnet
+```
 
+```Azure CLI
+** Virtual Network - SPOKE **
+az network vnet create --resource-group networking-handson-rg --name spokevnet --location eastus2 --address-prefixes 10.1.0.0/16 --subnet-name backendSubnet --subnet-prefix 10.1.1.0/24
+```
 
+```Azure CLI
+** Virtual Network - On-premises **
+az network vnet create --resource-group networking-handson-rg --name onpremvnet --location eastus2 --address-prefixes 192.168.0.0/16 --subnet-name onpremSubnet --subnet-prefix 192.168.1.0/24
+```
+Now you will build the Azure network enviroments: On-premises, Hub and Spoke on Azure.
 
 ### Task 2: Configure subnets
 
