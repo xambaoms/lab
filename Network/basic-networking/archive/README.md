@@ -134,11 +134,13 @@ Virtual Network documentation</br>
 7.  Monitor the deployment status by selecting **Notifications Bell** at the top of the portal. In a minute or so, you should see a confirmation of the successful deployment. Select **Go to Resource**.
 
 
-#### Second Option: Create a virtual network using the Azure Cloud Shell.
+#### Second Option: Create a virtual networks using the Azure Cloud Shell.
 
 > **More Information:** https://docs.microsoft.com/en-us/azure/virtual-network/quick-create-portal
 
 1. To start Azure Cloud Shell:
+
+    **Options:**
 
 - Select the Cloud Shell button on the menu bar at the upper right in the Azure portal. ->
 
@@ -164,41 +166,47 @@ az network vnet create --resource-group networking-handson-rg --name onpremvnet 
 ```
 Now you will build the Azure network enviroments: On-premises, Hub and Spoke on Azure.
 
-## Exercise 2: Create a Virtual Machine
+### Task 2: Configure subnets
 
-Duration: 20 minutes
+1.  Go to the WGVNetRG1 Group, and select **WGVNet1 Virtual Network** blade if you're not there already, and select **Subnets**.
 
-**Reference:**</br>
-Virtual Machines Documentation</br>
-<https://docs.microsoft.com/en-us/azure/virtual-machines/>  
+    ![In the Virtual Network blade, under Settings, Subnets is selected.](images/Hands-onlabstep-by-step-Enterprise-classnetworkinginAzureimages/media/image28.png "Virtual Network blade")
 
-#### Create a virtual machine using the Azure Cloud Shell.
+2.  In the **Subnets** blade select **+Subnet**.
 
-> **More Information:** https://docs.microsoft.com/en-us/azure/virtual-machines/windows/quick-create-cli
+    ![In the Subnets blade, the add Subnet button is selected.](images/Hands-onlabstep-by-step-Enterprise-classnetworkinginAzureimages/media/image29.png "Subnets blade")
 
-> **Note:** In this step you wil create 4 machines: 2 VMs for hubvnet, 1 VM for spokevnet and 1 VM for onpremisesvnet.
+3.  On the **Add subnet** blade, enter the following information:
 
-1. To start Azure Cloud Shell:
+    -  Name: **Management**
 
-- Select the Cloud Shell button on the menu bar at the upper right in the Azure portal. ->
+    -  Address range: **10.7.2.0/25**
 
-    ![](./images/hdi-cloud-shell-menu.png)
+    -  Network security group: **None**
 
-- Wait the windows apear and enter into the prompt with the following information:
+    -  Route table: **None**
 
-```Azure CLI
-** Virtual Machine - Hub **
-az network public-ip create --name azhubwsserver1-pip --resource-group networking-handson-rg --location eastus2 --allocation-method Dynamic
-az network nic create --resource-group networking-handson-rg -n azhubwsserver1-nic --location eastus2 --subnet websubnet --vnet-name hubvnet --public-ip-address azhubwsserver1-pip --private-ip-address 10.0.1.4
-az vm create -n azhubwsserver1 -g networking-handson-rg --image win2016datacenter --admin-username azureuser --admin-password Msft@123456@ --nics azhubwsserver1-nic --no-wait
+    -  Service Endpoints: **Leave as Default**.
 
-az network public-ip create --name azwsserver2-pip --resource-group LAB-VNET02-RG --location eastus2 --allocation-method Dynamic
-az network nic create --resource-group LAB-VNET02-RG -n azwsserver2-nic --location eastus2 --subnet inside --vnet-name LAB-VNET02 --public-ip-address azwsserver2-pip --private-ip-address 10.1.1.4
-az vm create -n azwsservervm2 -g LAB-VNET02-RG --image win2016datacenter --admin-username azureuser --admin-password Msft@123456@ --nics azwsserver2-nic --no-wait
-```
+4.  When your dialog looks like the following screenshot, select **OK** to create the subnet.
 
+    ![Field values in the Add Subnet blade are set to the previously defined settings.](images/Hands-onlabstep-by-step-Enterprise-classnetworkinginAzureimages/media/image30.png "Add Subnet blade")
 
-## Exercise 3: Create a Network Monitoring Solution
+5. Repeat Step 3, enter the following information for the Azure Firewall which we will use to control traffic flow in and out of the Network. 
+
+    -  Name: **AzureFirewallSubnet** (This name is fixed and cannot be changed.)
+
+    -  Address range: **10.7.1.0/24**
+
+    -  Network security group: **None**
+
+    -  Route table: **None**
+
+    -  Service Endpoints: **Leave as Default**
+
+    ![Field values in the Add Subnet blade are set to the previously defined settings.](images/Hands-onlabstep-by-step-Enterprise-classnetworkinginAzureimages/media/image159.png "Add Subnet blade")
+
+## Exercise 2: Create a Network Monitoring Solution
 
 Duration: 15 minutes
 
