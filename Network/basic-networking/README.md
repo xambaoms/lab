@@ -37,104 +37,9 @@ Virtual Network documentation</br>
 <https://azure.microsoft.com/en-us/documentation/services/virtual-network/>  
 
 
-#### First Option: Create a virtual networks using the Azure portal.
-
 > **More Information:** https://docs.microsoft.com/en-us/azure/virtual-network/quick-create-portal
 
-1.  Connect to the Azure portal, select **+ Create a resource**, and in the list of Marketplace categories, select **Networking** followed by selecting **Virtual Network**.
-
-**Azure - Hub Virtual Network**
-
-2.  On the **Create virtual network** blade, enter the following information:
-
-    -  Name: **hubvnet**
-
-    -  Address space: **10.0.0.0/16**
-
-    -  Subscription: **Select your subscription**.
-
-    -  Resource group: Click on **Create new**, and enter the name **networking-handson-rg**.
-
-    -  Location: **(US) Esat US 2**
-
-    -  Subnet name: **GatewaySubnet** (This name is fixed and cannot be changed.)
-
-    -  Subnet address range: **10.0.1.0/27**
-
-    -  Subnet name: **websubnet** 
-
-    -  Subnet address range: **10.0.2.0/24**
-    
-</br>
-
-![The create virtual network dialog is displayed.](./images/virtual-network-create-hub.png)
-
-</br>
-
-3.  Upon completion, it should look like the following screenshot. Validate the information is correct, and select **Create**.
-
-4.  Monitor the deployment status by selecting **Notifications Bell** at the top of the portal. In a minute or so, you should see a confirmation of the successful deployment. Select **Go to Resource**.
-
-** Azure - Spoke Virtual Network**
-
-5. **Repeat step 1 and 2**, enter the following information:
-
-
-    -  Name: **spokevnet**
-
-    -  Address space: **10.1.0.0/16**
-
-    -  Subscription: **Select your subscription**.
-
-    -  Resource group: Select **networking-handson-rg**.
-
-    -  Location: **(US) Esat US 2**
-
-    -  Subnet name: **backendSubnet** 
-
-    -  Subnet address range: **10.1.1.0/24**
-
-    </br>
-
-![The create virtual network dialog is displayed.](./images/virtual-network-create-spoke.png)
-
-</br>
-
-6.  Upon completion, it should look like the following screenshot. Validate the information is correct, and select **Create**.
-
-7.  Monitor the deployment status by selecting **Notifications Bell** at the top of the portal. In a minute or so, you should see a confirmation of the successful deployment. Select **Go to Resource**.
-
-** Onpremisses Virtual Network**
-
-5. **Repeat step 1 and 2**, enter the following information:
-
-
-    -  Name: **onpremvnet**
-
-    -  Address space: **192.168.0.0/16**
-
-    -  Subscription: **Select your subscription**.
-
-    -  Resource group: Select **networking-handson-rg**.
-
-    -  Location: **(US) Esat US 2**
-
-    -  Subnet name: **onpremSubnet** 
-
-    -  Subnet address range: **192.168.1.0/24**
-
-    </br>
-
-![The create virtual network dialog is displayed.](./images/virtual-network-create-onprem.png)
-
-</br>
-
-6.  Upon completion, it should look like the following screenshot. Validate the information is correct, and select **Create**.
-
-7.  Monitor the deployment status by selecting **Notifications Bell** at the top of the portal. In a minute or so, you should see a confirmation of the successful deployment. Select **Go to Resource**.
-
-
-#### Second Option: Create a virtual network using the Azure Cloud Shell.
+#### Create a virtual network using the Azure Cloud Shell.
 
 > **More Information:** https://docs.microsoft.com/en-us/azure/virtual-network/quick-create-portal
 
@@ -144,7 +49,7 @@ Virtual Network documentation</br>
 
     ![](./images/hdi-cloud-shell-menu.png)
 
-- Wait the windows apear and enter into the prompt with the following information:
+2. Wait the windows apear and enter into the prompt with the following information:
 
 ```Azure CLI
 ** Virtual Network - HUB **
@@ -184,18 +89,32 @@ Virtual Machines Documentation</br>
 
     ![](./images/hdi-cloud-shell-menu.png)
 
-- Wait the windows apear and enter into the prompt with the following information:
+
+2. Wait the windows apear and enter into the prompt with the following information:
 
 ```Azure CLI
 ** Virtual Machine - Hub **
-az network public-ip create --name azhubwsserver1-pip --resource-group networking-handson-rg --location eastus2 --allocation-method Dynamic
-az network nic create --resource-group networking-handson-rg -n azhubwsserver1-nic --location eastus2 --subnet websubnet --vnet-name hubvnet --public-ip-address azhubwsserver1-pip --private-ip-address 10.0.1.4
-az vm create -n azhubwsserver1 -g networking-handson-rg --image win2016datacenter --admin-username azureuser --admin-password Msft@123456@ --nics azhubwsserver1-nic --no-wait
+az vm availability-set create -n azhubwsserver-avset -g networking-handson-rg --platform-fault-domain-count 2 --platform-update-domain-count 2
+az network nic create --resource-group networking-handson-rg -n azhubwsserver1-nic --location eastus2 --subnet websubnet --vnet-name hubvnet --private-ip-address 10.0.1.4
+az vm create -n azhubwsserver1 -g networking-handson-rg --image win2016datacenter --size Standard_B2s --storage-sku Standard_LRS --admin-username azureuser --admin-password Msft@123456@ --nics azhubwsserver1-nic --no-wait
+az vm extension set --publisher Microsoft.Compute --version 1.8 --name CustomScriptExtension --vm-name azhubwsserver1 -g networking-handson-rg --settings '{"commandToExecute":"powershell.exe Install-WindowsFeature -Name Web-Server"}'
 
-az network public-ip create --name azwsserver2-pip --resource-group LAB-VNET02-RG --location eastus2 --allocation-method Dynamic
-az network nic create --resource-group LAB-VNET02-RG -n azwsserver2-nic --location eastus2 --subnet inside --vnet-name LAB-VNET02 --public-ip-address azwsserver2-pip --private-ip-address 10.1.1.4
-az vm create -n azwsservervm2 -g LAB-VNET02-RG --image win2016datacenter --admin-username azureuser --admin-password Msft@123456@ --nics azwsserver2-nic --no-wait
+az network nic create --resource-group networking-handson-rg -n azhubwsserver2-nic --location eastus2 --subnet websubnet --vnet-name hubvnet --private-ip-address 10.0.2.5
+az vm create -n azhubwsserver2 -g networking-handson-rg --image win2016datacenter --size Standard_B2s --storage-sku Standard_LRS --admin-username azureuser --admin-password Msft@123456@ --nics azhubwsserver2-nic --availability-set MyAvailabilitySet
+az vm extension set --publisher Microsoft.Compute --version 1.8 --name CustomScriptExtension --vm-name azhubwsserver2 -g networking-handson-rg --settings '{"commandToExecute":"powershell.exe Install-WindowsFeature -Name Web-Server"}' 
 ```
+```Azure CLI
+** Virtual Machine - Spoke **
+az network nic create --resource-group networking-handson-rg -n azspokeserver1-nic --location eastus2 --subnet backendSubnet --vnet-name spokevnet --private-ip-address 10.1.1.4
+az vm create -n azspokeserver1 -g networking-handson-rg --image win2016datacenter --size Standard_B2s --storage-sku Standard_LRS --admin-username azureuser --admin-password Msft@123456@ --nics azspokeserver1-nic --no-wait
+```
+```Azure CLI
+** Virtual Machine - On-premises **
+az network nic create --resource-group networking-handson-rg -n onpremserver1-nic --location eastus2 --subnet onpremSubnet --vnet-name onpremvnet --private-ip-address 192.168.1.4
+az vm create -n onpremserver1 -g networking-handson-rg --image win2016datacenter --size Standard_B2s --storage-sku Standard_LRS --admin-username azureuser --admin-password Msft@123456@ --nics onpremserver1-nic --no-wait
+```
+
+After the finish of execution the Azure Cloud Shell commands, you can check it into the resource group.
 
 
 ## Exercise 3: Create a Network Monitoring Solution
