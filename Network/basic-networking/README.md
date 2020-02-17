@@ -72,11 +72,11 @@ az network vnet create --resource-group networking-handson-rg --name onpremvnet 
 Check if the network enviroments created
 
 ```Azure CLI
-az network vnet list -g networking-handson-rg
+az network vnet list -g networking-handson-rg --output table
 ```
-
 Now you will build the Azure network enviroments: On-premises, Hub and Spoke on Azure.
 
+![](./images/list-vnets.png)
 
 ## Exercise 2: Create a Virtual Machine
 
