@@ -55,12 +55,13 @@ Virtual Network documentation</br>
 ** Virtual Network - HUB **
 az group create --name networking-handson-rg --location eastus2
 az network vnet create --resource-group networking-handson-rg --name hubvnet --location eastus2 --address-prefixes 10.0.0.0/16 --subnet-name GatewaySubnet --subnet-prefix 10.0.1.0/27
-az network vnet subnet create --address-prefix 10.0.2.0/24 --name websubnet --resource-group networking-handson-rg --vnet-name hubvnet
+az network vnet subnet create --address-prefix 10.0.2.0/24 --name managementsubnet --resource-group networking-handson-rg --vnet-name hubvnet
 ```
 
 ```Azure CLI
 ** Virtual Network - SPOKE **
-az network vnet create --resource-group networking-handson-rg --name spokevnet --location eastus2 --address-prefixes 10.1.0.0/16 --subnet-name backendSubnet --subnet-prefix 10.1.1.0/24
+az network vnet create --resource-group networking-handson-rg --name spokevnet --location eastus2 --address-prefixes 10.1.0.0/16 --subnet-name websubnet
+--subnet-prefix 10.1.1.0/24
 ```
 
 ```Azure CLI
@@ -92,22 +93,25 @@ Virtual Machines Documentation</br>
 
 2. Wait the windows apear and enter into the prompt with the following information:
 
+
 ```Azure CLI
 ** Virtual Machine - Hub **
-az vm availability-set create -n azhubwsserver-avset -g networking-handson-rg --platform-fault-domain-count 2 --platform-update-domain-count 2
-az network nic create --resource-group networking-handson-rg -n azhubwsserver1-nic --location eastus2 --subnet websubnet --vnet-name hubvnet --private-ip-address 10.0.1.4
-az vm create -n azhubwsserver1 -g networking-handson-rg --image win2016datacenter --size Standard_B2s --storage-sku Standard_LRS --admin-username azureuser --admin-password Msft@123456@ --nics azhubwsserver1-nic --no-wait
-az vm extension set --publisher Microsoft.Compute --version 1.8 --name CustomScriptExtension --vm-name azhubwsserver1 -g networking-handson-rg --settings '{"commandToExecute":"powershell.exe Install-WindowsFeature -Name Web-Server"}'
-
-az network nic create --resource-group networking-handson-rg -n azhubwsserver2-nic --location eastus2 --subnet websubnet --vnet-name hubvnet --private-ip-address 10.0.2.5
-az vm create -n azhubwsserver2 -g networking-handson-rg --image win2016datacenter --size Standard_B2s --storage-sku Standard_LRS --admin-username azureuser --admin-password Msft@123456@ --nics azhubwsserver2-nic --availability-set MyAvailabilitySet
-az vm extension set --publisher Microsoft.Compute --version 1.8 --name CustomScriptExtension --vm-name azhubwsserver2 -g networking-handson-rg --settings '{"commandToExecute":"powershell.exe Install-WindowsFeature -Name Web-Server"}' 
-```
-```Azure CLI
-** Virtual Machine - Spoke **
-az network nic create --resource-group networking-handson-rg -n azspokeserver1-nic --location eastus2 --subnet backendSubnet --vnet-name spokevnet --private-ip-address 10.1.1.4
+az network nic create --resource-group networking-handson-rg -n azspokeserver1-nic --location eastus2 --subnet managementsubnet --vnet-name hubvnet --private-ip-address 10.1.1.4
 az vm create -n azspokeserver1 -g networking-handson-rg --image win2016datacenter --size Standard_B2s --storage-sku Standard_LRS --admin-username azureuser --admin-password Msft@123456@ --nics azspokeserver1-nic --no-wait
 ```
+
+```Azure CLI
+** Virtual Machine - Spoke **
+az vm availability-set create -n azhubwsserver-avset -g networking-handson-rg --platform-fault-domain-count 2 --platform-update-domain-count 2
+az network nic create --resource-group networking-handson-rg -n azhubwsserver1-nic --location eastus2 --subnet websubnet --vnet-name spokevnet --private-ip-address 10.1.1.4
+az vm create -n azhubwsserver1 -g networking-handson-rg --image win2016datacenter --size Standard_B2s --storage-sku Standard_LRS --admin-username azureuser --admin-password Msft@123456@ --nics azhubwsserver1-nic --availability-set azhubwsserver-avset --no-wait
+az vm extension set --publisher Microsoft.Compute --version 1.8 --name CustomScriptExtension --vm-name azhubwsserver1 -g networking-handson-rg --settings '{"commandToExecute":"powershell.exe Install-WindowsFeature -Name Web-Server"}'
+
+az network nic create --resource-group networking-handson-rg -n azhubwsserver2-nic --location eastus2 --subnet websubnet --vnet-name spokevnet --private-ip-address 10.1.1.5
+az vm create -n azhubwsserver2 -g networking-handson-rg --image win2016datacenter --size Standard_B2s --storage-sku Standard_LRS --admin-username azureuser --admin-password Msft@123456@ --nics azhubwsserver2-nic --availability-set azhubwsserver-avset
+az vm extension set --publisher Microsoft.Compute --version 1.8 --name CustomScriptExtension --vm-name azhubwsserver2 -g networking-handson-rg --settings '{"commandToExecute":"powershell.exe Install-WindowsFeature -Name Web-Server"}' 
+```
+
 ```Azure CLI
 ** Virtual Machine - On-premises **
 az network nic create --resource-group networking-handson-rg -n onpremserver1-nic --location eastus2 --subnet onpremSubnet --vnet-name onpremvnet --private-ip-address 192.168.1.4
