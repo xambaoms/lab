@@ -69,7 +69,7 @@ az network vnet create --resource-group networking-handson-rg --name spokevnet -
 az network vnet create --resource-group networking-handson-rg --name onpremvnet --location eastus2 --address-prefixes 192.168.0.0/16 --subnet-name onpremSubnet --subnet-prefix 192.168.1.0/24
 ```
 
-Check if the network enviroments created
+Check if the network enviroment is created
 
 ```Azure CLI
 az network vnet list -g networking-handson-rg --output table
@@ -81,6 +81,8 @@ Now you will build the Azure network enviroments: On-premises, Hub and Spoke on 
 ## Exercise 2: Create a Virtual Machine
 
 Duration: 20 minutes
+
+### Task 1: Create the Virtual Machines
 
 **Reference:**</br>
 Virtual Machines Documentation</br>
@@ -106,11 +108,11 @@ Virtual Machines Documentation</br>
 ** Virtual Machine - Hub **
 az vm availability-set create -n azhubwsserver-avset -g networking-handson-rg --platform-fault-domain-count 2 --platform-update-domain-count 2
 az network nic create --resource-group networking-handson-rg -n azhubwsserver1-nic --location eastus2 --subnet websubnet --vnet-name hubvnet --private-ip-address 10.0.2.4
-az vm create -n azhubwsserver1 -g networking-handson-rg --image win2016datacenter --size Standard_B2s --storage-sku Standard_LRS --admin-username azureuser --admin-password Msft@123456@ --nics azhubwsserver1-nic --availability-set azhubwsserver-avset --no-wait
+az vm create -n azhubwsserver1 -g networking-handson-rg --image win2016datacenter --storage-sku Standard_LRS --admin-username azureuser --admin-password Msft@123456@ --nics azhubwsserver1-nic --availability-set azhubwsserver-avset --no-wait
 az vm extension set --publisher Microsoft.Compute --version 1.8 --name CustomScriptExtension --vm-name azhubwsserver1 -g networking-handson-rg --settings '{"fileUris":["https://aznetworkinghandson.blob.core.windows.net/public/deploy-iis.ps1"],"commandToExecute":"powershell.exe -ExecutionPolicy Unrestricted -file deploy-iis.ps1"}'
 
 az network nic create --resource-group networking-handson-rg -n azhubwsserver2-nic --location eastus2 --subnet websubnet --vnet-name hubvnet --private-ip-address 10.0.2.5
-az vm create -n azhubwsserver2 -g networking-handson-rg --image win2016datacenter --size Standard_B2s --storage-sku Standard_LRS --admin-username azureuser --admin-password Msft@123456@ --nics azhubwsserver2-nic --availability-set azhubwsserver-avset
+az vm create -n azhubwsserver2 -g networking-handson-rg --image win2016datacenter --storage-sku Standard_LRS --admin-username azureuser --admin-password Msft@123456@ --nics azhubwsserver2-nic --availability-set azhubwsserver-avset --no-wait
 az vm extension set --publisher Microsoft.Compute --version 1.8 --name CustomScriptExtension --vm-name azhubwsserver2 -g networking-handson-rg --settings '{"fileUris":["https://aznetworkinghandson.blob.core.windows.net/public/deploy-iis.ps1"],"commandToExecute":"powershell.exe -ExecutionPolicy Unrestricted -file deploy-iis.ps1"}'
 ```
 
@@ -135,35 +137,51 @@ Duration: 15 minutes
 
 ### Task 1: Create a Log Analytics Workspace
 
-1.  From your **LABVM**, connect to the Azure portal, select **+ Create a resource**, and in the list of Marketplace categories, select **IT & Management Tools** followed by selecting **Log Analytics**.
+**Reference:**</br>
+Azure Monitor documentation</br>
+<https://docs.microsoft.com/en-us/azure/azure-monitor/>
+What is Azure Network Watcher?</br>
+<https://docs.microsoft.com/en-us/azure/network-watcher/network-watcher-monitoring-overview>
 
-2.  On the **Create workspace** blade, enter the following information:
 
-    -  Name: **Enter Unique Name all lowercase**
+#### Create a virtual machine using the Azure Cloud Shell.
 
-    -  Subscription: **Select your subscription**.
+> **More Information:** https://docs.microsoft.com/en-us/azure/virtual-machines/windows/quick-create-cli
 
-    -  Resource group: Select **Create new**, and enter the name **MonitoringRG**.
+> **Note:** In this step you wil create 4 machines: 2 VMs for hubvnet, 1 VM for spokevnet and 1 VM for onpremisesvnet.
 
-    -  Location: **East US**
+1. To start Azure Cloud Shell:
 
-    -  Pricing Tier: **Per GB (2018)**
+- Select the Cloud Shell button on the menu bar at the upper right in the Azure portal. ->
 
-3.  Upon completion, it should look like the following screenshot. Validate the information is correct, and select **OK**.
+    ![](./images/hdi-cloud-shell-menu.png)
 
-    ![This represents the properly filled out fields when creating a Log Analytics Workspace.](images/Hands-onlabstep-by-step-Enterprise-classnetworkinginAzureimages/media/image160.png "Create Log Analytics Workspace")
+
+2. Wait the windows apear and enter into the prompt with the following information:
+
+``` Azure CLI
+az group deployment create --resource-group networking-handson-rg --name azurenetworkinghandson-deploy --template-uri https://aznetworkinghandson.blob.core.windows.net/public/azmonitor.json
+```
+Validate if **Log Analytics** is create, with following command:
+
+``` Azure CLI
+az group deployment create --resource-group networking-handson-rg --name azurenetworkinghandson-deploy --template-uri https://aznetworkinghandson.blob.core.windows.net/public/azmonitor.json
+
+az monitor log-analytics workspace list -g networking-handson-rg 
+```
+![](./images/list-workspace.png)
 
 ### Task 2: Configure Network Watcher
 
-1.  From your **LABVM**, connect to the Azure portal, select **All Services**, and in the Category list, select **Networking** followed by selecting **Network Watcher**.
+1. To start Azure Cloud Shell and enter with the following information:
 
-    ![This is a Network Watcher configuration.](images/Hands-onlabstep-by-step-Enterprise-classnetworkinginAzureimages/media/image161.png "All Services blade")
+``` Azure CLI
+az network watcher configure -g networking-handson-rg  -l eastus2 --enabled true
+```
 
-2.  In the **Overview** blade, expand your subscription and select **SouthCentralUS** by selecting the **eclipse to the right** then enabling the service within the region.
 
-3.    Repeat the step above this time enabling the service within the **East US** region.
 
-   ![This is the Network Watcher blade where the enable region is selected.](images/Hands-onlabstep-by-step-Enterprise-classnetworkinginAzureimages/media/image162.png "Network Watcher Overview blade")
+
 
 ## Exercise 3: Create route tables with required routes
 
