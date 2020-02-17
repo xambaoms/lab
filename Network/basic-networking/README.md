@@ -55,13 +55,13 @@ Virtual Network documentation</br>
 ** Virtual Network - HUB **
 az group create --name networking-handson-rg --location eastus2
 az network vnet create --resource-group networking-handson-rg --name hubvnet --location eastus2 --address-prefixes 10.0.0.0/16 --subnet-name GatewaySubnet --subnet-prefix 10.0.1.0/27
-az network vnet subnet create --address-prefix 10.0.2.0/24 --name managementsubnet --resource-group networking-handson-rg --vnet-name hubvnet
+az network vnet subnet create --address-prefix 10.0.2.0/24 --name websubnet --resource-group networking-handson-rg --vnet-name hubvnet
+az network vnet subnet create --address-prefix 10.0.8.0/26 --name AzureFirewallSubnet --resource-group networking-handson-rg --vnet-name hubvnet
 ```
 
 ```Azure CLI
 ** Virtual Network - SPOKE **
-az network vnet create --resource-group networking-handson-rg --name spokevnet --location eastus2 --address-prefixes 10.1.0.0/16 --subnet-name websubnet
---subnet-prefix 10.1.1.0/24
+az network vnet create --resource-group networking-handson-rg --name spokevnet --location eastus2 --address-prefixes 10.1.0.0/16 --subnet-name spokesubnet --subnet-prefix 10.1.1.0/24
 ```
 
 ```Azure CLI
