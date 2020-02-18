@@ -62,7 +62,7 @@ az network vnet subnet create --address-prefix 10.0.10.0/27 --name AzureBastionS
 
 ```Azure CLI
 ** Virtual Network - SPOKE **
-az network vnet create --resource-group networking-handson-rg --name webvnet --location eastus2 --address-prefixes 10.1.0.0/16 --subnet-name spokesubnet --subnet-prefix 10.1.1.0/24
+az network vnet create --resource-group networking-handson-rg --name spokevnet --location eastus2 --address-prefixes 10.1.0.0/16 --subnet-name websubnet --subnet-prefix 10.1.1.0/24
 ```
 
 ```Azure CLI
@@ -70,18 +70,16 @@ az network vnet create --resource-group networking-handson-rg --name webvnet --l
 az network vnet create --resource-group networking-handson-rg --name onpremvnet --location eastus2 --address-prefixes 192.168.0.0/16 --subnet-name onpremSubnet --subnet-prefix 192.168.1.0/24
 ```
 
-3. Validate if **Virtual Networks** is create, with following command:
+3. Validate if **Virtual Networks** is create, run following command:
 
 ```Azure CLI
 az network vnet list -g networking-handson-rg --output table
 ```
 Now you built the Azure network enviroments: On-premises, Hub and Spoke on Azure.
 
-![](./images/list-vnets.png)
-
 ## Exercise 2: Create a Virtual Machine
 
-Duration: 20 minutes
+Duration: 30 minutes
 
 ### Task 1: Create the Virtual Machines
 
@@ -108,7 +106,7 @@ Virtual Machines Documentation</br>
 ** Virtual Machine - Hub **
 az network nic create --resource-group networking-handson-rg -n azmngserver1-nic --location eastus2 --subnet managementsubnet --vnet-name hubvnet --private-ip-address 10.0.2.4
 az vm create -n azmngserver1 -g networking-handson-rg --image win2016datacenter  --storage-sku Standard_LRS --admin-username azureuser --admin-password Msft@123456@ --nics azmngserver1-nic --no-wait
-az vm extension set --publisher Microsoft.Compute --version 1.8 --name CustomScriptExtension --vm-name azmngserver1 -g networking-handson-rg --settings '{"fileUris":["https://aznetworkinghandson.blob.core.windows.net/public/enable-icmp.ps1"],"commandToExecute":"powershell.exe -ExecutionPolicy Unrestricted -file enable-icmp.ps1"}'
+az vm extension set --publisher Microsoft.Compute --version 1.8 --name CustomScriptExtension --vm-name azmngserver1 -g networking-handson-rg --settings '{"fileUris":["https://aznetworkinghandson.blob.core.windows.net/public/enable-icmp.ps1"],"commandToExecute":"powershell.exe -ExecutionPolicy Unrestricted -file enable-icmp.ps1"}' --no-wait
 
 ```
 
@@ -117,27 +115,25 @@ az vm extension set --publisher Microsoft.Compute --version 1.8 --name CustomScr
 az vm availability-set create -n azwsserver-avset -g networking-handson-rg --platform-fault-domain-count 2 --platform-update-domain-count 2
 az network nic create --resource-group networking-handson-rg -n azwsserver1-nic --location eastus2 --subnet websubnet --vnet-name spokevnet --private-ip-address 10.1.1.4
 az vm create -n azwsserver1 -g networking-handson-rg --image win2016datacenter --storage-sku Standard_LRS --admin-username azureuser --admin-password Msft@123456@ --nics azwsserver1-nic --availability-set azwsserver-avset --no-wait
-az vm extension set --publisher Microsoft.Compute --version 1.8 --name CustomScriptExtension --vm-name azwsserver1 -g networking-handson-rg --settings '{"fileUris":["https://aznetworkinghandson.blob.core.windows.net/public/deploy-iis.ps1"],"commandToExecute":"powershell.exe -ExecutionPolicy Unrestricted -file deploy-iis.ps1"}'
+az vm extension set --publisher Microsoft.Compute --version 1.8 --name CustomScriptExtension --vm-name azwsserver1 -g networking-handson-rg --settings '{"fileUris":["https://aznetworkinghandson.blob.core.windows.net/public/deploy-iis.ps1"],"commandToExecute":"powershell.exe -ExecutionPolicy Unrestricted -file deploy-iis.ps1"}' --no-wait
 
 az network nic create --resource-group networking-handson-rg -n azwsserver2-nic --location eastus2 --subnet websubnet --vnet-name spokevnet --private-ip-address 10.1.1.5
 az vm create -n azwsserver2 -g networking-handson-rg --image win2016datacenter --storage-sku Standard_LRS --admin-username azureuser --admin-password Msft@123456@ --nics azwsserver2-nic --availability-set azwsserver-avset --no-wait
-az vm extension set --publisher Microsoft.Compute --version 1.8 --name CustomScriptExtension --vm-name azwsserver2 -g networking-handson-rg --settings '{"fileUris":["https://aznetworkinghandson.blob.core.windows.net/public/deploy-iis.ps1"],"commandToExecute":"powershell.exe -ExecutionPolicy Unrestricted -file deploy-iis.ps1"}'
+az vm extension set --publisher Microsoft.Compute --version 1.8 --name CustomScriptExtension --vm-name azwsserver2 -g networking-handson-rg --settings '{"fileUris":["https://aznetworkinghandson.blob.core.windows.net/public/deploy-iis.ps1"],"commandToExecute":"powershell.exe -ExecutionPolicy Unrestricted -file deploy-iis.ps1"}' --no-wait
 ```
 
 ```Azure CLI
 ** Virtual Machine - On-premises **
 az network nic create --resource-group networking-handson-rg -n onpremserver1-nic --location eastus2 --subnet onpremSubnet --vnet-name onpremvnet --private-ip-address 192.168.1.4
 az vm create -n onpremserver1 -g networking-handson-rg --image win2016datacenter --storage-sku Standard_LRS --admin-username azureuser --admin-password Msft@123456@ --nics onpremserver1-nic --no-wait
-az vm extension set --publisher Microsoft.Compute --version 1.8 --name CustomScriptExtension --vm-name onpremserver1 -g networking-handson-rg --settings '{"fileUris":["https://aznetworkinghandson.blob.core.windows.net/public/enable-icmp.ps1"],"commandToExecute":"powershell.exe -ExecutionPolicy Unrestricted -file enable-icmp.ps1"}'
+az vm extension set --publisher Microsoft.Compute --version 1.8 --name CustomScriptExtension --vm-name onpremserver1 -g networking-handson-rg --settings '{"fileUris":["https://aznetworkinghandson.blob.core.windows.net/public/enable-icmp.ps1"],"commandToExecute":"powershell.exe -ExecutionPolicy Unrestricted -file enable-icmp.ps1"}' --no-wait
 ```
 
-3. Validate if **Virtual Machines** is create, with following command:
+3. Validate if **Virtual Machines** is create, run following command:
 
 ``` Azure CLI
-az monitor log-analytics workspace list -g networking-handson-rg 
+az vm list -g networking-handson-rg --output table
 ```
-
-![](./images/list-workspace.png)
 
 ## Exercise 3: Create a Network Monitoring Solution
 
@@ -166,14 +162,15 @@ What is Azure Network Watcher?</br>
 2. Wait the windows apear and enter into the prompt with the following information:
 
 ``` Azure CLI
-az group deployment create --resource-group networking-handson-rg --name azurenetworkinghandson-deploy --template-uri https://aznetworkinghandson.blob.core.windows.net/public/azmonitor.json
+az monitor log-analytics workspace create -g networking-handson-rg  -n azurenetworkmonitor 
 ```
-3. Validate if **Log Analytics** is create, with following command:
+In workspace name **Enter Unique Name all lowercase**
+
+3. Validate if **Log Analytics** is create, run following command:
 
 ``` Azure CLI
-az monitor log-analytics workspace list -g networking-handson-rg 
+az monitor log-analytics workspace list -g networking-handson-rg  --output table
 ```
-![](./images/list-workspace.png)
 
 ### Task 2: Configure Network Watcher
 
@@ -182,14 +179,11 @@ az monitor log-analytics workspace list -g networking-handson-rg
 ``` Azure CLI
 az network watcher configure -g networking-handson-rg  -l eastus2 --enabled true
 ```
-3. Validate if **Network Watcher** is create, with following command:
+3. Validate if **Network Watcher** is create, run following command:
 
 ``` Azure CLI
 az network watcher list --output table
 ```
-
-![](./images/list-netwatcher.png)
-
 ## Exercise 4: Configure Network Security Groups
 
 In this exercise, you will restrict traffic between tiers of n-tier application by using network security groups and application security groups.
@@ -232,7 +226,7 @@ az network vnet subnet update -g networking-handson-rg -n AzureBastionSubnet --v
 az network nsg create -g networking-handson-rg --name nsg_managment
 az network nsg rule create --name managment-in-allow_ssh_rdp --nsg-name nsg_managment --priority 100 -g networking-handson-rg --access Allow --protocol Tcp --direction Inbound --destination-port-ranges 22 3389 --source-address-prefixes VirtualNetwork
 az network nsg rule create --name managment-in-allow_icmp --nsg-name nsg_managment --priority 120 -g networking-handson-rg --access Allow --protocol Icmp --direction Inbound --source-address-prefixes VirtualNetwork
-az network vnet subnet update -g networking-handson-rg -n spokesubnet --vnet-name spokevnet --network-security-group nsg_managment
+az network vnet subnet update -g networking-handson-rg -n managementsubnet --vnet-name hubvnet --network-security-group nsg_managment
 ```
 
 ``` Azure CLI
@@ -241,17 +235,14 @@ az network nsg create -g networking-handson-rg --name nsg_web
 az network nsg rule create --name web-in-allow_ssh_rdp --nsg-name nsg_web --priority 100 -g networking-handson-rg --access Allow --protocol Tcp --direction Inbound --destination-port-ranges 22 3389 --destination-address-prefixes VirtualNetwork
 az network nsg rule create --name web-in-allow_https_http --nsg-name nsg_web --priority 120 -g networking-handson-rg --access Allow --protocol Tcp --direction Inbound --destination-port-ranges 443 80 --destination-address-prefixes VirtualNetwork
 az network nsg rule create --name web-in-allow_icmp --nsg-name nsg_web --priority 130 -g networking-handson-rg --access Allow --protocol Icmp --direction Inbound --source-address-prefixes VirtualNetwork
-az network vnet subnet update -g networking-handson-rg -n websubnet --vnet-name hubvnet --network-security-group nsg_web
+az network vnet subnet update -g networking-handson-rg -n websubnet --vnet-name spokevnet --network-security-group nsg_web
 ```
 
-3. Validate if **Network Security Group** is create, with following command:
+3. Validate if **Network Security Group** is create, run following command:
 
 ``` Azure CLI
-az network nsg list --output table
+az network nsg list -g networking-handson-rg --output table
 ```
-
-![](./images/list-netwatcher.png)
-
 
 ## Exercise 5: Configure Azure Bastion Host
 
@@ -294,6 +285,8 @@ After that wait 5 minutes for bastion resoruce to create and deploy.
 
 ![](./images/bastion-connect-2.png)
 
+
+5. Connect a Azure Bastion to **azmngserver1** virtual machine and sign in. On **azmngserver1**, open the command prompt and run *ping -t 10.1.1.4* **(azwsserver1)**. The ping should fail.
 
 ## Exercise 6: Configure Virtual Network Peering
 
