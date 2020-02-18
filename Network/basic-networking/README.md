@@ -480,7 +480,7 @@ az network vpn-connection show --name HubgwToOnpremgw --resource-group networkin
 az network vpn-connection show --name OnpremgwtoHubgw --resource-group networking-handson-rg
 ``` 
 
-## Exercise 9: Configure application with Load Balance and Azure Front Door
+## Exercise 10: Configure application with Load Balance and Azure Front Door
 
 ## After the hands-on lab
 
