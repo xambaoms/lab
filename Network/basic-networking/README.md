@@ -14,7 +14,7 @@ At the end of this hands-on lab, you will be better able to configure Azure netw
 
 - How to implement Azure Firewall to control hybrid and cross-virtual network traffic flow based on policies.
 
-- How to implement a combination of Network Security Groups (NSGs) and Application Security Groups (ASGs) to control traffic flow within virtual networks.
+- How to implement a combination of Network Security Groups (NSGs)  to control traffic flow within virtual networks.
 
 - How to monitor network traffic for proper route configuration and troubleshooting.
 
