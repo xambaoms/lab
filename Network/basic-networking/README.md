@@ -417,8 +417,70 @@ az network firewall network-rule create --collection-name net-allow-rule-dns --d
 
 2. Configure Azure Monitor logs view in **<https://docs.microsoft.com/en-us/azure/firewall/log-analytics-samples#azure-monitor-logs-view>** 
 
-## Exercise 9: Create route tables
+## Exercise 9: Configure Site-to-Site connectivity
 
+Duration: 60 minutes
+
+In this exercise, we will simulate an on-premises connection to the internal web application. To do this, we will first set up another Virtual Network in a separate Azure region followed by the Site-to-Site connection of the 2 Virtual Networks Finally, we will set up a virtual machine in the new Virtual Network to simulate on-premises connectivity to the internal load-balancer
+
+**Reference:**</br>
+VPN Gateway documentation</br>
+<https://docs.microsoft.com/en-us/azure/vpn-gateway/></br>
+
+### Task 1: Configure gateway subnets and create VPN Gateway for on premise and Azure Hub Virtual Network
+
+#### Create and Configure a VPN Gateway using the Azure Cloud Shell. (*Bash*)
+
+> **More Information:** https://docs.microsoft.com/en-us/azure/vpn-gateway/create-routebased-vpn-gateway-cli
+
+1. To start Azure Cloud Shell:
+
+- Select the Cloud Shell button on the menu bar at the upper right in the Azure portal. ->
+
+    ![](./images/hdi-cloud-shell-menu.png)
+
+
+2. Wait the windows of bash console apear and run commands with the following information:
+
+``` Azure CLI
+* VPN Gateway - On-premises **
+az network vnet subnet create --address-prefix 192.168.10.0/27 --name GatewaySubnet --resource-group networking-handson-rg --vnet-name onpremvnet
+az network public-ip create -n onpremvnetgw-pip -g networking-handson-rg --allocation-method Dynamic
+az network vnet-gateway create -g networking-handson-rg -n onpremvnetgw --public-ip-address onpremvnetgw-pip --vnet onpremvnet --gateway-type Vpn --sku VpnGw1 --vpn-type RouteBased --no-wait
+
+* VPN Gateway - Azure Hub **
+az network public-ip create -n hubvnetgw-pip -g networking-handson-rg --allocation-method Dynamic
+az network vnet-gateway create -g networking-handson-rg -n hubvnetgw --public-ip-address hubvnetgw-pip --vnet hubvnet --gateway-type Vpn --sku VpnGw1 --vpn-type RouteBased --no-wait
+```
+A VPN gateway can take 45 minutes or more to create.
+
+### Task 2: Update Virtual Network Peering for Spoke Virtual Network
+
+1. Repeat step 1 from **Task 1** and run following commands to update the Virtual Network Peering:
+
+``` Azure CLI
+az network vnet peering update -g networking-handson-rg -n hubvnet-to-spokevnet --vnet-name hubvnet --set allowGatewayTransit=true
+az network vnet peering update -g networking-handson-rg -n spokevnet-to-hubvnet --vnet-name spokevnet --set useRemoteGateways=true
+``` 
+### Task 3: Connect the gateways
+
+1. Repeat step 1 from **Task 1** and run following commands to create a connection between On-premises gateway to Azure Hub Gateway :
+
+``` Azure CLI
+hubvgwId=$(az network vnet-gateway show --resource-group networking-handson-rg --name hubvnetgw --query id --out tsv)
+onpremgwId=$(az network vnet-gateway show --resource-group networking-handson-rg --name onpremvnetgw --query id --out tsv)
+az network vpn-connection create -n HubgwToOnpremgw -g networking-handson-rg --vnet-gateway1 $hubvgwId -l eastus2 --shared-key "Msft@123456@" --vnet-gateway2 $onpremgwId
+az network vpn-connection create -n OnpremgwtoHubgw -g networking-handson-rg --vnet-gateway1 $onpremgwId -l eastus2 --shared-key "Msft@123456@" --vnet-gateway2 $hubvgwId
+``` 
+
+You can verify that your connection succeeded by using the az network vpn-connection show command. In the example, '--name' refers to the name of the connection that you want to test. When the connection is in the process of being established, its connection status shows 'Connecting'. Once the connection is established, the status changes to *Connected*.
+
+``` Azure CLI
+az network vpn-connection show --name HubgwToOnpremgw --resource-group networking-handson-rg
+az network vpn-connection show --name OnpremgwtoHubgw --resource-group networking-handson-rg
+``` 
+
+## Exercise 9: Configure application with Load Balance and Azure Front Door
 
 ## After the hands-on lab
 
