@@ -55,13 +55,14 @@ Virtual Network documentation</br>
 ** Virtual Network - HUB **
 az group create --name networking-handson-rg --location eastus2
 az network vnet create --resource-group networking-handson-rg --name hubvnet --location eastus2 --address-prefixes 10.0.0.0/16 --subnet-name GatewaySubnet --subnet-prefix 10.0.1.0/27
-az network vnet subnet create --address-prefix 10.0.2.0/24 --name websubnet --resource-group networking-handson-rg --vnet-name hubvnet
+az network vnet subnet create --address-prefix 10.0.2.0/24 --name managementsubnet --resource-group networking-handson-rg --vnet-name hubvnet
 az network vnet subnet create --address-prefix 10.0.8.0/26 --name AzureFirewallSubnet --resource-group networking-handson-rg --vnet-name hubvnet
+az network vnet subnet create --address-prefix 10.0.10.0/27 --name AzureBastionSubnet --resource-group networking-handson-rg --vnet-name hubvnet
 ```
 
 ```Azure CLI
 ** Virtual Network - SPOKE **
-az network vnet create --resource-group networking-handson-rg --name spokevnet --location eastus2 --address-prefixes 10.1.0.0/16 --subnet-name spokesubnet --subnet-prefix 10.1.1.0/24
+az network vnet create --resource-group networking-handson-rg --name webvnet --location eastus2 --address-prefixes 10.1.0.0/16 --subnet-name spokesubnet --subnet-prefix 10.1.1.0/24
 ```
 
 ```Azure CLI
@@ -103,29 +104,28 @@ Virtual Machines Documentation</br>
 
 2. Wait the windows apear and enter into the prompt with the following information:
 
-
 ```Azure CLI
 ** Virtual Machine - Hub **
-az vm availability-set create -n azhubwsserver-avset -g networking-handson-rg --platform-fault-domain-count 2 --platform-update-domain-count 2
-az network nic create --resource-group networking-handson-rg -n azhubwsserver1-nic --location eastus2 --subnet websubnet --vnet-name hubvnet --private-ip-address 10.0.2.4
-az vm create -n azhubwsserver1 -g networking-handson-rg --image win2016datacenter --storage-sku Standard_LRS --admin-username azureuser --admin-password Msft@123456@ --nics azhubwsserver1-nic --availability-set azhubwsserver-avset --no-wait
-az vm extension set --publisher Microsoft.Compute --version 1.8 --name CustomScriptExtension --vm-name azhubwsserver1 -g networking-handson-rg --settings '{"fileUris":["https://aznetworkinghandson.blob.core.windows.net/public/deploy-iis.ps1"],"commandToExecute":"powershell.exe -ExecutionPolicy Unrestricted -file deploy-iis.ps1"}'
-
-az network nic create --resource-group networking-handson-rg -n azhubwsserver2-nic --location eastus2 --subnet websubnet --vnet-name hubvnet --private-ip-address 10.0.2.5
-az vm create -n azhubwsserver2 -g networking-handson-rg --image win2016datacenter --storage-sku Standard_LRS --admin-username azureuser --admin-password Msft@123456@ --nics azhubwsserver2-nic --availability-set azhubwsserver-avset --no-wait
-az vm extension set --publisher Microsoft.Compute --version 1.8 --name CustomScriptExtension --vm-name azhubwsserver2 -g networking-handson-rg --settings '{"fileUris":["https://aznetworkinghandson.blob.core.windows.net/public/deploy-iis.ps1"],"commandToExecute":"powershell.exe -ExecutionPolicy Unrestricted -file deploy-iis.ps1"}'
+az network nic create --resource-group networking-handson-rg -n azmngserver1-nic --location eastus2 --subnet managementsubnet --vnet-name hubvnet --private-ip-address 10.0.2.4
+az vm create -n azspokeserver1 -g networking-handson-rg --image win2016datacenter  --storage-sku Standard_LRS --admin-username azureuser --admin-password Msft@123456@ --nics azspokeserver1-nic --no-wait
 ```
 
 ```Azure CLI
 ** Virtual Machine - Spoke **
-az network nic create --resource-group networking-handson-rg -n azspokeserver1-nic --location eastus2 --subnet spokesubnet --vnet-name spokevnet --private-ip-address 10.1.1.4
-az vm create -n azspokeserver1 -g networking-handson-rg --image win2016datacenter --size Standard_B2s --storage-sku Standard_LRS --admin-username azureuser --admin-password Msft@123456@ --nics azspokeserver1-nic --no-wait
+az vm availability-set create -n azwsserver-avset -g networking-handson-rg --platform-fault-domain-count 2 --platform-update-domain-count 2
+az network nic create --resource-group networking-handson-rg -n azwsserver1-nic --location eastus2 --subnet websubnet --vnet-name spokevnet --private-ip-address 10.1.1.4
+az vm create -n azwsserver1 -g networking-handson-rg --image win2016datacenter --storage-sku Standard_LRS --admin-username azureuser --admin-password Msft@123456@ --nics azwsserver1-nic --availability-set azwsserver-avset --no-wait
+az vm extension set --publisher Microsoft.Compute --version 1.8 --name CustomScriptExtension --vm-name azwsserver1 -g networking-handson-rg --settings '{"fileUris":["https://aznetworkinghandson.blob.core.windows.net/public/deploy-iis.ps1"],"commandToExecute":"powershell.exe -ExecutionPolicy Unrestricted -file deploy-iis.ps1"}'
+
+az network nic create --resource-group networking-handson-rg -n azwsserver2-nic --location eastus2 --subnet websubnet --vnet-name spokevnet --private-ip-address 10.1.1.5
+az vm create -n azwsserver2 -g networking-handson-rg --image win2016datacenter --storage-sku Standard_LRS --admin-username azureuser --admin-password Msft@123456@ --nics azwsserver2-nic --availability-set azwsserver-avset --no-wait
+az vm extension set --publisher Microsoft.Compute --version 1.8 --name CustomScriptExtension --vm-name azwsserver2 -g networking-handson-rg --settings '{"fileUris":["https://aznetworkinghandson.blob.core.windows.net/public/deploy-iis.ps1"],"commandToExecute":"powershell.exe -ExecutionPolicy Unrestricted -file deploy-iis.ps1"}'
 ```
 
 ```Azure CLI
 ** Virtual Machine - On-premises **
 az network nic create --resource-group networking-handson-rg -n onpremserver1-nic --location eastus2 --subnet onpremSubnet --vnet-name onpremvnet --private-ip-address 192.168.1.4
-az vm create -n onpremserver1 -g networking-handson-rg --image win2016datacenter --size Standard_B2s --storage-sku Standard_LRS --admin-username azureuser --admin-password Msft@123456@ --nics onpremserver1-nic --no-wait
+az vm create -n onpremserver1 -g networking-handson-rg --image win2016datacenter --storage-sku Standard_LRS --admin-username azureuser --admin-password Msft@123456@ --nics onpremserver1-nic --no-wait
 ```
 
 3. Validate if **Virtual Machines** is create, with following command:
@@ -187,11 +187,11 @@ az network watcher list --output table
 
 ![](./images/list-netwatcher.png)
 
-## Exercise 4: Configure Network Security Groups and Application Security Groups
+## Exercise 4: Configure Network Security Groups
 
 In this exercise, you will restrict traffic between tiers of n-tier application by using network security groups and application security groups.
 
-Duration: 15 minutes
+Duration: 20 minutes
 
 **Reference:**</br>
 Azure Network Security Groups</br>
@@ -221,6 +221,7 @@ az network nsg rule create --name bastion-control-in-allow --nsg-name nsg_azureb
 az network nsg rule create --name bastion-in-deny --nsg-name nsg_azurebastion --priority 900 -g networking-handson-rg --access Deny --protocol Tcp --direction Inbound
 az network nsg rule create --name bastion-vnet-out-allow --nsg-name nsg_azurebastion --priority 100 -g networking-handson-rg --access Allow --protocol Tcp --direction Outbound --destination-port-ranges 22 3389 --destination-address-prefixes VirtualNetwork
 az network nsg rule create --name bastion-azure-out-allow --nsg-name nsg_azurebastion --priority 120 -g networking-handson-rg --access Allow --protocol Tcp --direction Outbound --destination-port-ranges 443 --destination-address-prefixes AzureCloud
+az network vnet subnet update -g networking-handson-rg -n AzureBastionSubnet --vnet-name hubvnet --network-security-group nsg_azurebastion
 ```
 
 ``` Azure CLI
@@ -249,9 +250,11 @@ az network nsg list --output table
 ![](./images/list-netwatcher.png)
 
 
-## Exercise 4: Configure Azure Bastion Host
+## Exercise 5: Configure Azure Bastion Host
 
-Duration: 20 minutes
+In this exercise, you will create and configure an Azure Bastion host. Once you provision the Azure Bastion service in your virtual network, the seamless RDP/SSH experience is available to all of the VMs in the same virtual network. Azure Bastion deployment is per virtual network.
+
+Duration: 15 minutes
 
 **Reference:**</br>
 Azure Bastion documentation</br>
@@ -260,9 +263,9 @@ Azure Bastion documentation</br>
 
 ### Task 1: Create Azure Bastion Host
 
-#### Create a Azure Bastion Hosts using the Azure Cloud Shell. (*Porwershell*)
+#### Create an Azure Bastion Hosts using the Azure Cloud Shell. (*Powershell*)
 
-> **More Information:** https://docs.microsoft.com/en-us/azure/virtual-machines/windows/quick-create-cli
+> **More Information:** https://docs.microsoft.com/en-us/azure/bastion/bastion-create-host-powershell
 
 1. To start Azure Cloud Shell:
 
@@ -273,10 +276,114 @@ Azure Bastion documentation</br>
 
 2. Wait the windows apear and enter into the prompt with the following information:
 
+```Powershell
+$vnet = Get-AzVirtualNetwork -Name hubvnet -ResourceGroupName networking-handson-rg 
+$publicip = New-AzPublicIpAddress -ResourceGroupName "networking-handson-rg" -name "azurebastionhub-pip" -location "eastus2" -AllocationMethod Static -Sku Standard
+$bastion = New-AzBastion -ResourceGroupName "networking-handson-rg" -Name "azurebastionhub" -PublicIpAddress $publicip -VirtualNetwork $vnet
+```
+After that wait 5 minutes for bastion resoruce to create and deploy.
+
+3. Open the **Azure portal**. Navigate to the virtual machine that you want to connect to, then click Connect. The VM should be a Windows virtual machine when using an RDP connection.
+
+![](./images/bastion-connect.png)
+
+4. After you click Connect, a side bar appears that has three tabs – RDP, SSH, and Bastion. If Bastion was provisioned for the virtual network, the Bastion tab is active by default. If you didn't provision Bastion for the virtual network, you can click the link to configure Bastion
+
+![](./images/bastion-connect-2.png)
+
+
+## Exercise 6: Configure Virtual Network Peering
+
+In this exercise, you will create and configure a Virtual Network peering between hubvnet and spokevnet. These virtual networks can be in the same region or different regions (also known as Global VNet peering). Once virtual networks are peered, resources in both virtual networks are able to communicate with each other, with the same latency and bandwidth as if the resources were in the same virtual network.
+
+Duration: 15 minutes
+
+**Reference:**</br>
+Virtual network peering</br>
+<https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-peering-overview></br>
+
+### Task 1: Create Virtual Network Peering
+
+#### Create a Virtual Network Peering using the Azure Cloud Shell. (*Bash*)
+
+> **More Information:** https://docs.microsoft.com/en-us/azure/bastion/bastion-create-host-powershell
+
+1. To start Azure Cloud Shell:
+
+- Select the Cloud Shell button on the menu bar at the upper right in the Azure portal. ->
+
+    ![](./images/hdi-cloud-shell-menu.png)
+
+
+2. Wait the windows apear and enter into the prompt with the following information:
+
+``` Azure CLI
+hubvNet1Id=$(az network vnet show --resource-group networking-handson-rg --name hubvnet --query id --out tsv)
+spokevNet1Id=$(az network vnet show --resource-group networking-handson-rg --name spokevnet --query id --out tsv)
+az network vnet peering create --name hubvnet-to-spokevnet --resource-group networking-handson-rg --vnet-name hubvnet --remote-vnet $spokevNet1Id --allow-vnet-access 
+az network vnet peering create --name spokevnet-to-hubvnet --resource-group networking-handson-rg --vnet-name spokevnet --remote-vnet $hubvNet1Id --allow-vnet-access 
+```
+3. You created a peering from hubvnet to spokehub on both side. Resources in one virtual network cannot communicate with resources in the other virtual network until the **peeringState** for the peerings in both virtual networks is *Connected*. Validate it with following command.
+
+``` Azure CLI
+az network vnet peering show --name hubvnet-to-spokevnet --resource-group networking-handson-rg --vnet-name hubvnet --query peeringState
+```
+
+## Exercise 7: Configure Azure Firewall
+
+In this exercise, you will create and configure an Azure Firewall and their rules. All the traffic (inside and outside) will be control by Firewall.
+
+Duration: 30 minutes
+
+**Reference:**</br>
+Azure Firewall documentation</br>
+<https://docs.microsoft.com/en-us/azure/firewall/></br>
+
+### Task 1: Create an Azure Firewall
+
+#### Create a Azure Firewall using the Azure Cloud Shell. (*Bash*)
+
+> **More Information:** https://docs.microsoft.com/en-us/azure/firewall/deploy-cli
+
+1. To start Azure Cloud Shell:
+
+- Select the Cloud Shell button on the menu bar at the upper right in the Azure portal. ->
+
+    ![](./images/hdi-cloud-shell-menu.png)
+
+
+2. Wait the windows apear and enter into the prompt with the following information:
+
+``` Azure CLI
+az extension add -n azure-firewall
+az network firewall create --name azfirewall --resource-group networking-handson-rg --location eastus2 
+az network public-ip create --name azfirewall-pip --resource-group networking-handson-rg --location eastus2 --allocation-method static --sku standard
+az network firewall ip-config create --firewall-name azfirewall --name azfirewall-config --public-ip-address azfirewall-pip --resource-group networking-handson-rg --vnet-name hubvnet
+az network firewall update --name azfirewall --resource-group networking-handson-rg
+```
+
+### Task 2: Configure rules for Azure Firewall
+1. Repeat step 1 from **Task 1** and enter with the following command to create the Azure firewall rules:
+
+``` Azure CLI
+az network firewall application-rule create --collection-name app-allow-rule-websites --firewall-name azfirewall --name allow-microsoft --protocols Http=80 Https=443 --resource-group networking-handson-rg --target-fqdns www.microsoft.com  --source-addresses 10.0.2.0/24 --priority 200 --action Allow
+az network firewall network-rule create --collection-name net-allow-rule-dns --destination-addresses 168.63.129.16 --destination-ports 53 --firewall-name azfirewall --name allow-azure-dns  --protocols UDP --resource-group networking-handson-rg --priority 200 --source-addresses 10.0.0.0/16 10.1.0.0/16 --action Allow
+```
+2. Connect a Azure Bastion to **azmngserver1** virtual machine and sign in. On **azmngserver1**, open the internet explorer and first try to navigate in *www.google.com* and second in *www.microsoft.com*.
+
+The www.microsoft.com requests should succeed, and the www.google.com requests should fail
+
+### Task 3: Configure monitoring for Azure Firewall
+
+1. Follow step-by-step in the **<https://docs.microsoft.com/en-us/azure/firewall/tutorial-diagnostics#enable-diagnostic-logging-through-the-azure-portal>** to enable the  Diagnostic logs of Azure firewall in Log Analytics workspace.
+
+2. Configure Azure Monitor logs view in **<https://docs.microsoft.com/en-us/azure/firewall/log-analytics-samples#azure-monitor-logs-view>** 
+
+## Exercise 8: Create route tables
+
+
 ## After the hands-on lab
 
 Duration: 10 minutes
 
-After you have successfully completed the Enterprise-class networking in Azure hands-on lab step-by-step, you will want to delete the Resource Groups. This will free up your subscription from future charges.
-
-You should follow all steps provided *after* attending the Hands-on lab.
+After you have successfully completed the Azure Networking hands-on lab step-by-step, you will want to delete the Resource Groups. This will free up your subscription from future charges. You should follow all steps provided *after* attending the Hands-on lab.
