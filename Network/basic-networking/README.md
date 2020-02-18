@@ -329,7 +329,47 @@ az network vnet peering create --name spokevnet-to-hubvnet --resource-group netw
 az network vnet peering show --name hubvnet-to-spokevnet --resource-group networking-handson-rg --vnet-name hubvnet --query peeringState
 ```
 
-## Exercise 7: Configure Azure Firewall
+## Exercise 7: Create route tables with definition routes
+
+Route Tables are containers for User Defined Routes (UDRs). The route table is created and associated with a subnet. UDRs allow you to direct traffic in ways other than normal system routes would. In this case, UDRs will direct outbound traffic via the Azure firewall.
+
+Duration: 20 minutes
+
+**Reference:**</br>
+Virtual network traffic routing</br>
+<https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview/></br>
+
+### Task 1: Create and configure Route Table
+
+#### Create and Configure a Route Table using the Azure Cloud Shell. (*Bash*)
+
+> **More Information:** https://docs.microsoft.com/en-us/azure/firewall/deploy-cli
+
+1. To start Azure Cloud Shell:
+
+- Select the Cloud Shell button on the menu bar at the upper right in the Azure portal. ->
+
+    ![](./images/hdi-cloud-shell-menu.png)
+
+
+2. Wait the windows apear and enter into the prompt with the following information:
+
+``` Azure CLI
+az network route-table create --name route-hubvnet-managementsubnet --resource-group networking-handson-rg
+az network route-table route create --name hubvnet-managementsubnet-to-internet --resource-group networking-handson-rg --route-table-name route-hubvnet-managementsubnet --address-prefix 0.0.0.0/0 --next-hop-type VirtualAppliance --next-hop-ip-address 10.0.8.4
+az network vnet subnet update --name managementsubnet --vnet-name hubvnet --resource-group networking-handson-rg --route-table route-hubvnet-managementsubnet
+
+az network route-table create --name route-spokevnet-websubnet --resource-group networking-handson-rg
+az network route-table route create --name spokevnet-websubnet-to-internet --resource-group networking-handson-rg --route-table-name route-spokevnet-websubnet --address-prefix 0.0.0.0/0 --next-hop-type VirtualAppliance --next-hop-ip-address 10.0.8.4
+az network vnet subnet update --name websubnet --vnet-name spokevnet --resource-group networking-handson-rg --route-table route-spokevnet-websubnet
+
+az network route-table create --name route-onpremvnet-onpresubnet --resource-group networking-handson-rg
+az network route-table route create --name onpremvnet-onpresubnet-to-hubvnet --resource-group networking-handson-rg --route-table-name route-onpremvnet-onpresubnet --address-prefix 10.0.1.0/27 --next-hop-type VirtualAppliance --next-hop-ip-address 10.0.8.4
+az network vnet subnet update --name GatewaySubnet --vnet-name hubvnet --resource-group networking-handson-rg --route-table route-onpremvnet-onpresubnet
+
+```
+
+## Exercise 8: Configure Azure Firewall
 
 In this exercise, you will create and configure an Azure Firewall and their rules. All the traffic (inside and outside) will be control by Firewall.
 
@@ -377,7 +417,7 @@ az network firewall network-rule create --collection-name net-allow-rule-dns --d
 
 2. Configure Azure Monitor logs view in **<https://docs.microsoft.com/en-us/azure/firewall/log-analytics-samples#azure-monitor-logs-view>** 
 
-## Exercise 8: Create route tables
+## Exercise 9: Create route tables
 
 
 ## After the hands-on lab
