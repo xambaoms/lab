@@ -333,7 +333,7 @@ az network vnet peering show --name hubvnet-to-spokevnet --resource-group networ
 
 In this exercise, you will create and configure an Azure Firewall and their rules. All the traffic (inside and outside) will be control by Firewall.
 
-Duration: 30 minutes
+Duration: 40 minutes
 
 **Reference:**</br>
 Azure Firewall documentation</br>
@@ -369,9 +369,7 @@ az network firewall update --name azfirewall --resource-group networking-handson
 az network firewall application-rule create --collection-name app-allow-rule-websites --firewall-name azfirewall --name allow-microsoft --protocols Http=80 Https=443 --resource-group networking-handson-rg --target-fqdns www.microsoft.com  --source-addresses 10.0.2.0/24 --priority 200 --action Allow
 az network firewall network-rule create --collection-name net-allow-rule-dns --destination-addresses 168.63.129.16 --destination-ports 53 --firewall-name azfirewall --name allow-azure-dns  --protocols UDP --resource-group networking-handson-rg --priority 200 --source-addresses 10.0.0.0/16 10.1.0.0/16 --action Allow
 ```
-2. Connect a Azure Bastion to **azmngserver1** virtual machine and sign in. On **azmngserver1**, open the internet explorer and first try to navigate in *www.google.com* and second in *www.microsoft.com*.
-
-The www.microsoft.com requests should succeed, and the www.google.com requests should fail
+2. Connect a Azure Bastion to **azmngserver1** virtual machine and sign in. On **azmngserver1**, open the internet explorer and first try to navigate in *www.google.com* and second in *www.microsoft.com*.The www.microsoft.com requests should succeed, and the www.google.com requests should fail
 
 ### Task 3: Configure monitoring for Azure Firewall
 
