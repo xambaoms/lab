@@ -511,8 +511,11 @@ az network firewall nat-rule create --collection-name firewall-to-ilb -g network
 
 1. Repeat step 1 from **Task 1** and run following commands to create and configure an Azure Front Door :
 
+``` Azure CLI
 az extension add --name front-door
 az network front-door create --name aznetworkfrontdoor --resource-group networking-handson-rg --protocol Http --backend-address aznetworkfrontdoor.azurefd.net
+```
+
 ## After the hands-on lab
 
 Duration: 10 minutes
