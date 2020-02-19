@@ -409,7 +409,7 @@ az network firewall network-rule create --collection-name net-allow-rule-dns --d
 
 ### Task 3: Configure monitoring for Azure Firewall
 
-1. Follow step-by-step in the **<https://docs.microsoft.com/en-us/azure/firewall/tutorial-diagnostics#enable-diagnostic-logging-through-the-azure-portal>** to enable the  Diagnostic logs of Azure firewall in Log Analytics workspace.
+1. Follow step-by-step in the **<https://docs.microsoft.com/en-us/azure/firewall/tutorial-diagnostics#enable-diagnostic-logging-through-the-azure-portal>** to enable the Diagnostic logs of Azure firewall in Log Analytics workspace.
 
 2. Configure Azure Monitor logs view in **<https://docs.microsoft.com/en-us/azure/firewall/log-analytics-samples#azure-monitor-logs-view>** 
 
@@ -417,7 +417,6 @@ az network firewall network-rule create --collection-name net-allow-rule-dns --d
 
 Duration: 60 minutes
 
-In this exercise, we will simulate an on-premises connection to the internal web application. To do this, we will first set up another Virtual Network in a separate Azure region followed by the Site-to-Site connection of the 2 Virtual Networks Finally, we will set up a virtual machine in the new Virtual Network to simulate on-premises connectivity to the internal load-balancer
 
 **Reference:**</br>
 VPN Gateway documentation</br>
@@ -478,8 +477,46 @@ az network vpn-connection show --name OnpremgwtoHubgw --resource-group networkin
 
 ## Exercise 10: Configure application with Load Balance and Azure Front Door
 
+Duration: 30 minutes
+
+**Reference:**</br>
+What is Azure Front Door Service?</br>
+<https://docs.microsoft.com/en-us/azure/frontdoor/front-door-overview></br>
+
+### Task 1: Configure an Azure Load Balance
+
+#### Create and Configure a Azure Load Balance using the Azure Cloud Shell. (*Bash*)
+
+> **More Information:** https://docs.microsoft.com/en-us/azure/vpn-gateway/create-routebased-vpn-gateway-cli
+
+1. To start Azure Cloud Shell:
+
+- Select the Cloud Shell button on the menu bar at the upper right in the Azure portal. ->
+
+    ![](./images/hdi-cloud-shell-menu.png)
+
+
+2. Wait the windows of bash console apear and run commands with the following information:
+
+``` Azure CLI
+azfwppip=$(az network public-ip show -g networking-handson-rg -n azfirewall-pip --query ipAddress --out tsv)
+az network lb create -g networking-handson-rg -n lbspokeweb --sku Standard --vnet-name spokevnet --subnet websubnet --private-ip-address 10.1.1.100 --backend-pool-name lbspokewebbepool
+az network lb probe create --resource-group networking-handson-rg --lb-name lbspokeweb --name healthprobelb --protocol tcp --port 80
+az network lb rule create --resource-group networking-handson-rg --lb-name lbspokeweb --name httprule --protocol tcp --frontend-port 80 --backend-port 80 --frontend-ip-name LoadBalancerFrontEnd --backend-pool-name lbspokewebbepool --probe-name healthprobelb
+az network nic ip-config update --resource-group networking-handson-rg --nic-name azwsserver1-nic -n ipconfig1 --lb-name lbspokeweb --lb-address-pools lbspokewebbepool
+az network nic ip-config update --resource-group networking-handson-rg --nic-name azwsserver2-nic -n ipconfig1 --lb-name lbspokeweb --lb-address-pools lbspokewebbepool
+az network firewall nat-rule create --collection-name firewall-to-ilb -g networking-handson-rg -f azfirewall --priority 100 --name http-ilb --destination-addresses $azfwppip --destination-ports 80 --source-addresses '*' --translated-address 10.1.1.100 --translated-port 80 --protocols TCP --action Dnat
+``` 
+### Task 2: Configure an Azure Front Door
+
+1. Repeat step 1 from **Task 1** and run following commands to create and configure an Azure Front Door :
+
+az extension add --name front-door
+az network front-door create --name aznetworkfrontdoor --resource-group networking-handson-rg --protocol Http --backend-address aznetworkfrontdoor.azurefd.net
 ## After the hands-on lab
 
 Duration: 10 minutes
 
 After you have successfully completed the Azure Networking hands-on lab step-by-step, you will want to delete the Resource Groups. This will free up your subscription from future charges. You should follow all steps provided *after* attending the Hands-on lab.
+
+52.167.68.34
