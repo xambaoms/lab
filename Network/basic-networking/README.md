@@ -568,29 +568,8 @@ az storage account create -n aznetworkingstor *<Define Unique name and lowercase
 
 9. Navigate back to the azmngserver1 and then to the azwsserver1. Generate some traffic to the public IP of the firewall and local Load Balancer refreshing the browser. Allow ten minutes to pass for traffic analytics to generate.  
 
-
-### Task 2: Configuring Diagnostic Logs
-
-1. On the Azure portal, select **All services** at the left navigation. From the Categories menu select **Networking**, then **Network Watcher**,
-
-2. Select **Diagnostic Logs** from the **Logs Menu** within the blade.
-
-     ![](images/image192.png)
-
-3. Select **azmngserver1-nic** then select **+Add diagnostic setting**.
-
-4. Enter **AzPremDiag** as the name then select the checkbox for archive to a storage account. From the drop down select the storage account you created earlier.
-
-     ![](images/image193.png)
-
-5. Select the **Send to Log Analytics** selecting the workspace created earlier. Select the **Save** button to complete the settings.
-
-     ![](images/image194.png)
-
-6. Repeat Steps 2 - 5 for each network resource.
-
    
-### Task 3: Reviewing Network Traffic
+### Task 2: Reviewing Network Traffic
 
 1. On the Azure portal select **All services** at the left navigation. From the Categories menu select **Networking** then select **Network Watcher**.
 
