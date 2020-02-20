@@ -566,9 +566,8 @@ az storage account create -n aznetworkingstor *<Define Unique name and lowercase
 
      ![](images/image189.png)
 
-9. Navigate back to the OnPremVM and then to the WGMGMT1. Generate some traffic to the public IP of the firewall and local Load Balancer refreshing the browser. Allow ten minutes to pass for traffic analytics to generate.  
+9. Navigate back to the azmngserver1 and then to the azwsserver1. Generate some traffic to the public IP of the firewall and local Load Balancer refreshing the browser. Allow ten minutes to pass for traffic analytics to generate.  
 
-     ![](images/image190.png)
 
 ### Task 2: Configuring Diagnostic Logs
 
@@ -578,27 +577,26 @@ az storage account create -n aznetworkingstor *<Define Unique name and lowercase
 
      ![](images/image192.png)
 
-3. Select **onpremvm539** then select **+Add diagnostic setting**.
+3. Select **azmngserver1-nic** then select **+Add diagnostic setting**.
 
-4. Enter **OnPremDiag** as the name then select the checkbox for archive to a storage account. From the drop down select the storage account you created earlier.
+4. Enter **AzPremDiag** as the name then select the checkbox for archive to a storage account. From the drop down select the storage account you created earlier.
 
-     ![](images/Hands-onlabstep-by-step-Enterprise-classnetworkinginAzureimages/media/image193.png)
+     ![](images/image193.png)
 
 5. Select the **Send to Log Analytics** selecting the workspace created earlier. Select the **Save** button to complete the settings.
 
-     ![](images/Hands-onlabstep-by-step-Enterprise-classnetworkinginAzureimages/media/image194.png)
+     ![](images/image194.png)
 
-6. Repeat Steps 2 - 5 for each network resource. Once completed your settings will look like the following screenshot.
+6. Repeat Steps 2 - 5 for each network resource.
 
-     ![](images/Hands-onlabstep-by-step-Enterprise-classnetworkinginAzureimages/media/image195.png)
-
+   
 ### Task 3: Reviewing Network Traffic
 
 1. On the Azure portal select **All services** at the left navigation. From the Categories menu select **Networking** then select **Network Watcher**.
 
 2. Select **Traffic Analytics** from the **Logs Menu** in the blade. At this time the diagnostic logs from the network resources have been ingested. Select on **View Maps** in your environment.
 
-     ![](images/image195.png)
+     ![](images/image185.png)
 
 3. Select the **green check mark** which identifies your network. Within the pop up menu select **More Details** to propagate detailed information of the flow to and from your network.
 
@@ -628,10 +626,9 @@ az storage account create -n aznetworkingstor *<Define Unique name and lowercase
  
     -  Virtual Machine: **azmngserver1**
 
-    -  Probe Settings: **TCP**
+    -  Probe Settings: **ICMP**
     
-    -  Destination Port: **3389**
-
+    
      ![](images/image198.png)
 
 4. Once the check is complete the connection troubleshoot feature will display a grid view on the name, IP Address Status and Next hop as seen in the following screenshot. 
@@ -645,6 +642,5 @@ Duration: 10 minutes
 After you have successfully completed the Azure Networking hands-on lab step-by-step, you will want to delete the Resource Groups. Run following command on Azure Cloud Shell
 
 ``` Azure CLI
-
-
+az group delete --name networking-handson-rg --location eastus2
 ```
