@@ -516,10 +516,135 @@ azfwppip=$(az network public-ip show -g networking-handson-rg -n azfirewall-pip 
 az extension add --name front-door
 az network front-door create --name aznetworkfrontdoor --resource-group networking-handson-rg --protocol Http --backend-address $azfwppip --frontend-host-name aznetworkfrontdoor.azurefd.net *<Define Unique name .azurefd.net>*
 ```
+## Exercise 11: Using Network Watcher to Test and Validate Connectivity
 
-## After the hands-on lab
+In this exercise, you will collect the flow log and perform connectivity from your simulated on-premises environment to Azure. This will be accomplished by using the Network Watcher Service in the Azure Platform.
+
+Duration: 60 minutes
+
+**Reference:**</br>
+Traffic Analyticss</br>
+<https://docs.microsoft.com/en-us/azure/network-watcher/traffic-analytics></br>
+
+
+### Task 1: Configuring the Storage Account for the NSG Flow Logs
+
+#### Create and Configure a Storage Account and NSG Flow Log. (*Bash and Azure Portal*)
+
+1. To start Azure Cloud Shell:
+
+- Select the Cloud Shell button on the menu bar at the upper right in the Azure portal. ->
+
+    ![](./images/hdi-cloud-shell-menu.png)
+
+
+2. Wait the windows of bash console apear and run commands with the following information:
+
+``` Azure CLI
+az storage account create -n aznetworkingstor *<Define Unique name and lowercase>* -g networking-handson-rg --kind StorageV2 -l eastus2
+```
+
+   >**Note:** Ensure the storage account is created before continuing.
+
+3. On the Azure portal select **All services** at the left navigation. From the Categories menu select **Networking** then select **Network Watcher**.
+
+4. From the **Network Watcher** blade under the **Logs** menu select **NSG flow logs**. You will see both the **nsg_azurebastion, nsg_managment and nsg_web** Network Security Groups.
+
+    ![](images/image185.png)
+
+5. Select the **nsg_azurebastion** network security group to open the flow log settings. Select **On** and then select **Version 2** for the Flow logs version.
+
+6. Select **Storage Account Configure**. From the drop down select the storage account created earlier, then the **OK** button.
+
+    ![](images/image187.png)
+
+7. Select **On** to enable the traffic analytics status setting the interval to 10 minutes. Select the **Log Analytics Workspace** created earlier. Select **Save** at the top to confirm the settings.  
+
+    ![](images/image188.png)
+
+8. Repeat Steps 4 - 7 to enable the OnpremVM-nsg Network Security Group as well. When completed your configuration should show as the following image.
+
+     ![](images/image189.png)
+
+9. Navigate back to the OnPremVM and then to the WGMGMT1. Generate some traffic to the public IP of the firewall and local Load Balancer refreshing the browser. Allow ten minutes to pass for traffic analytics to generate.  
+
+     ![](images/image190.png)
+
+### Task 2: Configuring Diagnostic Logs
+
+1. On the Azure portal, select **All services** at the left navigation. From the Categories menu select **Networking**, then **Network Watcher**,
+
+2. Select **Diagnostic Logs** from the **Logs Menu** within the blade.
+
+     ![](images/image192.png)
+
+3. Select **onpremvm539** then select **+Add diagnostic setting**.
+
+4. Enter **OnPremDiag** as the name then select the checkbox for archive to a storage account. From the drop down select the storage account you created earlier.
+
+     ![](images/Hands-onlabstep-by-step-Enterprise-classnetworkinginAzureimages/media/image193.png)
+
+5. Select the **Send to Log Analytics** selecting the workspace created earlier. Select the **Save** button to complete the settings.
+
+     ![](images/Hands-onlabstep-by-step-Enterprise-classnetworkinginAzureimages/media/image194.png)
+
+6. Repeat Steps 2 - 5 for each network resource. Once completed your settings will look like the following screenshot.
+
+     ![](images/Hands-onlabstep-by-step-Enterprise-classnetworkinginAzureimages/media/image195.png)
+
+### Task 3: Reviewing Network Traffic
+
+1. On the Azure portal select **All services** at the left navigation. From the Categories menu select **Networking** then select **Network Watcher**.
+
+2. Select **Traffic Analytics** from the **Logs Menu** in the blade. At this time the diagnostic logs from the network resources have been ingested. Select on **View Maps** in your environment.
+
+     ![](images/image195.png)
+
+3. Select the **green check mark** which identifies your network. Within the pop up menu select **More Details** to propagate detailed information of the flow to and from your network.
+
+     ![](images/image197.png)
+
+>**Note:** You can select the **See More** link to query the connections detail for more information.
+
+### Task 4: Network Connection Troubleshooting
+
+1. On the Azure portal select **All services** at the left navigation. From the Categories menu select **Networking** then select **Network Watcher**.
+
+2. Select **Connection Troubleshoot** from the **Network Diagnostic tools** menu.
+
+3. To troubleshoot a connection or to validate the route enter the following information and select **Check**:
+   
+    -  Subscription: **Your Subscription**
+
+    -  Resource Group: **networking-handson-rg**
+
+    -  Source Type: **Virtual Machine**
+
+    -  Virtual Machine: **onpremserver1**
+
+    -  Destination: **Select a virtual machine**
+ 
+    -  Resource Group: **networking-handson-rg**
+ 
+    -  Virtual Machine: **azmngserver1**
+
+    -  Probe Settings: **TCP**
+    
+    -  Destination Port: **3389**
+
+     ![](images/image198.png)
+
+4. Once the check is complete the connection troubleshoot feature will display a grid view on the name, IP Address Status and Next hop as seen in the following screenshot. 
+
+     ![](images/image199.png)
+
+## Clean All Resources after the hands-on lab
 
 Duration: 10 minutes
 
-After you have successfully completed the Azure Networking hands-on lab step-by-step, you will want to delete the Resource Groups. This will free up your subscription from future charges. You should follow all steps provided *after* attending the Hands-on lab.
+After you have successfully completed the Azure Networking hands-on lab step-by-step, you will want to delete the Resource Groups. Run following command on Azure Cloud Shell
 
+``` Azure CLI
+
+
+```
