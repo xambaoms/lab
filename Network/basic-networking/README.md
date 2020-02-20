@@ -564,7 +564,7 @@ az storage account create -n aznetworkingstor *<Define Unique name and lowercase
 
 8. Repeat Steps 4 - 7 to enable the OnpremVM-nsg Network Security Group as well. When completed your configuration should show as the following image.
 
-     ![](images/image189.png)
+     ![](images/image185.png)
 
 9. Navigate back to the azmngserver1 and then to the azwsserver1. Generate some traffic to the public IP of the firewall and local Load Balancer refreshing the browser. Allow ten minutes to pass for traffic analytics to generate.  
 
