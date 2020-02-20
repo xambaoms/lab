@@ -455,7 +455,7 @@ A VPN gateway can take 45 minutes or more to create.
 
 ``` Azure CLI
 az network vnet peering update -g networking-handson-rg -n hubvnet-to-spokevnet --vnet-name hubvnet --set allowGatewayTransit=true
-az network vnet peering update -g networking-handson-rg -n spokevnet-to-hubvnet --vnet-name spokevnet --set useRemoteGateways=true
+az network vnet peering update -g networking-handson-rg -n spokevnet-to-hubvnet --vnet-name spokevnet --set useRemoteGateways=true --set allowForwardedTraffic=true
 ``` 
 ### Task 3: Connect the gateways
 
