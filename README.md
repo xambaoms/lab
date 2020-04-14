@@ -1,1 +1,1 @@
-## Hands-on Labs for Azure Network and Containers
+## Hands-on Labs for Azure Networking and Containers
