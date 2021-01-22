@@ -1,4 +1,4 @@
-# Azure Networking - Address Space Maintance with vNET Peering
+# Azure Networking Lab - Address Space Maintance with vNET Peering
 
 ## Introduction
 
@@ -14,11 +14,26 @@ Add-AzAccount #Logon on your Azure Tenant
 Get-AzContext # Check you have selected the correct Azure Subscription
 Set-AzContext -Subscription <Subscription Name> # Set appropriate Subscription
 ```
+
 ## Known Issues
 
 - After you establish a vNET peering is it not possible to change the address spaces inside Virtual Network without removing the vNET peering.
 
-> **More Information:** https://docs.microsoft.com/en-us/azure/virtual-network/quick-create-portal
+## Script
+- Save the powershell script file (*azure-vnetpeering-addess-spacemaintenace.ps1*) in specific path and add the required parameters:
+    - **$vnetname** = "Add Virtual Network Name"
+    - **$rg** = "Add Resource Group Virtual Netowork"
+    - **$exportPat** = "Add path to export the vNET Peering backup file"
+    - **$addvnetPath** = "Inform path and file name with extesion to Add the address space inside vNET. For    example: c:\temp\vnet.txt"
+
+Run the command:
+
+***azure-vnetpeering-addess-spacemaintenace.ps1 -vnetname vNETName -rg ResourceGroup -exportPat FilePath -addvnetPath FullFilePath***
+
+## Lab
+In this lab, you will setup two virtual networks in a hub-and-spoke design and configure a azure private peering between both vNETs. You will execute the powershell script to print the peering information, take a backup of all vNET information and add new address space into the hub vNET using a file with .txt extension. See a diagram of this Lab environment:
+
+
 
 ## Contributing
 

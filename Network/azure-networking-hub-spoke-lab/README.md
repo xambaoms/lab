@@ -1,4 +1,4 @@
-# Azure Networking hands-on lab step-by-step
+# Azure Networking hands-on lab step-by-step - Hub-Spoke Architeture
 
 ## Overview
 
