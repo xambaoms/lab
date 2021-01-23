@@ -4,7 +4,7 @@
 
 This script dumps all vNET peering information with their relationship, also will export all information to a backup file, and you will set up the new address space on vNET with vNET peering connected from the vNET address space file.
 
-## Requirements
+## Prerequisites
 
 - Install the powershell [Az modules](https://docs.microsoft.com/pt-br/powershell/azure/install-az-ps?view=azps-5.1.0) or use the [Azure Cloud Shell](https://docs.microsoft.com/en-us/azure/cloud-shell/overview) to run it.
 - Ensure you are properly logged in to your tenant and with a subscription selected. You can check that by using:
@@ -14,7 +14,15 @@ Add-AzAccount #Logon on your Azure Tenant
 Get-AzContext # Check you have selected the correct Azure Subscription
 Set-AzContext -Subscription <Subscription Name> # Set appropriate Subscription
 ```
+- Clone the GitHub repository:
 
+```powershell
+git clone https://github.com/adicout/lab/tree/master/Network/vnet-peering-change-address
+```
+- Change directory:
+```powershell
+cd ./vnet-peering-change-address
+```
 ## Known Issues
 
 - After you establish a vNET peering is it not possible to change the address spaces inside Virtual Network without removing the vNET peering.
@@ -32,11 +40,13 @@ Run the command:
 azure-vnetpeering-addess-spacemaintenace.ps1 -vnetname vNETName -rg ResourceGroup -exportPat FilePath -addvnetPath FullFilePath
 ```
 ## Lab
-In this lab, you will setup two virtual networks in a hub-and-spoke design and configure a azure private peering between both vNETs. You will execute the powershell script to print the peering information, take a backup of all vNET information and add new address space into the hub vNET using a file with .txt extension. See the topology of this Lab environment:
+In this lab, you will setup two virtual networks in a hub-and-spoke design and configure a azure private peering between both vNETs. You will execute the powershell script to print the peering information, take a backup of all vNET information and add new address space into the hub vNET using a file with .txt extension. 
+
+See the base topology:
 
 ![Network Architecture](./images/hub-spoke.png)
 
-Create the virtual networks using the Azure CLI in Azure Cloud Shell.
+Create the Lab environment using the Powershell inside Azure Cloud Shell.
 
 1. To start Azure Cloud Shell:
 
@@ -71,7 +81,7 @@ Add-AzVirtualNetworkPeering -Name spoke2vnet-to-hubvnet -VirtualNetwork $virtual
 3. Create a local file in C:\temp to add the new address space that you would like to insert in your virtual network. Run follow command on powershell:
 
 ```powershell
-New-Item "c:\temp\add_new_address_space.txt" -ItemType File -Value "10.0.4.0/24"
+New-Item "add_new_address_space.txt" -ItemType File -Value "10.0.4.0/24"
 ```
 
 4. Run the powershell script in your machine to get vNET peering information and add new address space inside of virtual network (hub-vnet). Run the following command:
