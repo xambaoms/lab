@@ -22,7 +22,7 @@ Set-AzContext -Subscription <Subscription Name> # Set appropriate Subscription
 ## Script
 - Save the powershell script file (*azure-vnetpeering-addess-spacemaintenace.ps1*) in specific path and add the required parameters:
     - **$vnetname** = "Add Virtual Network Name"
-    - **$rg** = "Add Resource Group Virtual Netowork"
+    - **$rg** = "Add Resource Group Virtual Network"
     - **$exportPat** = "Add path to export the vNET Peering backup file"
     - **$addvnetPath** = "Inform path and file name with extesion to Add the address space inside vNET. For    example: c:\temp\vnet.txt"
 
@@ -31,9 +31,9 @@ Run the command:
 ***azure-vnetpeering-addess-spacemaintenace.ps1 -vnetname vNETName -rg ResourceGroup -exportPat FilePath -addvnetPath FullFilePath***
 
 ## Lab
-In this lab, you will setup two virtual networks in a hub-and-spoke design and configure a azure private peering between both vNETs. You will execute the powershell script to print the peering information, take a backup of all vNET information and add new address space into the hub vNET using a file with .txt extension. See a diagram of this Lab environment:
+In this lab, you will setup two virtual networks in a hub-and-spoke design and configure a azure private peering between both vNETs. You will execute the powershell script to print the peering information, take a backup of all vNET information and add new address space into the hub vNET using a file with .txt extension. See the topology of this Lab environment:
 
-
+![Network Architecture](./images/hub-spoke.png)
 
 ## Contributing
 
