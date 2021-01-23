@@ -46,27 +46,28 @@ Create the virtual networks using the Azure CLI in Azure Cloud Shell.
 
 2. Wait the windows apear and enter into the prompt with the following information:
 
-```Azure CLI
+```powershell
 ** Virtual Networks**
-az group create --name lab-adressSpace-maintance-vnetpeering-rg --location eastus2
-az network vnet create --resource-group lab-adressSpace-maintance-vnetpeering-rg --name hub-vnet --location eastus2 --address-prefixes 10.0.1.0/24 --subnet-name hubSubnet --subnet-prefix 10.0.1.0/24
-az network vnet create --resource-group lab-adressSpace-maintance-vnetpeering-rg --name spoke1-vnet --location eastus2 --address-prefixes 10.0.2.0/24 --subnet-name spoke1Subnet --subnet-prefix 10.0.2.0/24
-az network vnet create --resource-group lab-adressSpace-maintance-vnetpeering-rg --name spoke2-vnet --location eastus2 --address-prefixes 10.0.3.0/24 --subnet-name spoke2Subnet --subnet-prefix 10.0.3.0/24
+New-AzResourceGroup -Name lab-adressSpace-maintance-vnetpeering-rg -Location eastus2
+$virtualNetwork01 = New-AzVirtualNetwork -ResourceGroupName lab-adressSpace-maintance-vnetpeering-rg -Location eastus2 -Name hub-vnet -AddressPrefix 10.0.1.0/24
+$subnetConfig01 = Add-AzVirtualNetworkSubnetConfig -Name hubSubnet -AddressPrefix 10.0.1.0/24 -VirtualNetwork $virtualNetwork01
+$virtualNetwork01 | Set-AzVirtualNetwork
+$virtualNetwork02 = New-AzVirtualNetwork -ResourceGroupName lab-adressSpace-maintance-vnetpeering-rg -Location eastus2 -Name spoke1-vnet -AddressPrefix 10.0.2.0/24
+$subnetConfig02 = Add-AzVirtualNetworkSubnetConfig -Name spoke1Subnet -AddressPrefix 10.0.2.0/24 -VirtualNetwork $virtualNetwork02
+$virtualNetwork02 | Set-AzVirtualNetwork
+$virtualNetwork03 = New-AzVirtualNetwork -ResourceGroupName lab-adressSpace-maintance-vnetpeering-rg -Location eastus2 -Name spoke2-vnet -AddressPrefix 10.0.3.0/24
+$subnetConfig03 = Add-AzVirtualNetworkSubnetConfig -Name spoke2Subnet -AddressPrefix 10.0.3.0/24 -VirtualNetwork $virtualNetwork03
+$virtualNetwork03 | Set-AzVirtualNetwork
 ```
 
-``` Azure CLI
+```powershell
 ** vNET Peering**
-hubvNetId=$(az network vnet show --resource-group lab-adressSpace-maintance-vnetpeering-rg --name hub-vnet --query id --out tsv)
-spokevNet1Id=$(az network vnet show --resource-group lab-adressSpace-maintance-vnetpeering-rg --name spoke1-vnet --query id --out tsv)
-spokevNet2Id=$(az network vnet show --resource-group lab-adressSpace-maintance-vnetpeering-rg --name spoke2-vnet --query id --out tsv)
-az network vnet peering create --name hubvnet-to-spoke1vnet --resource-group lab-adressSpace-maintance-vnetpeering-rg --vnet-name hub-vnet --remote-vnet $spokevNet1Id --allow-vnet-access 
-
-az network vnet peering create --name spoke1vnet-to-hubvnet --resource-group lab-adressSpace-maintance-vnetpeering-rg --vnet-name spoke1-vnet --remote-vnet $hubvNetId --allow-vnet-access
-
-az network vnet peering create --name hubvnet-to-spoke2vnet --resource-group lab-adressSpace-maintance-vnetpeering-rg --vnet-name hub-vnet --remote-vnet $spokevNet2Id --allow-vnet-access 
-
-az network vnet peering create --name spoke2vnet-to-hubvnet --resource-group lab-adressSpace-maintance-vnetpeering-rg --vnet-name spoke2-vnet --remote-vnet $hubvNetId --allow-vnet-access 
+Add-AzVirtualNetworkPeering -Name hubvnet-to-spoke1vnet -VirtualNetwork $virtualNetwork01 -RemoteVirtualNetworkId $virtualNetwork02.Id
+Add-AzVirtualNetworkPeering -Name spoke1vnet-to-hubvnet -VirtualNetwork $virtualNetwork02 -RemoteVirtualNetworkId $virtualNetwork01.Id
+Add-AzVirtualNetworkPeering -Name hubvnet-to-spoke2vnet -VirtualNetwork $virtualNetwork01 -RemoteVirtualNetworkId $virtualNetwork03.Id
+Add-AzVirtualNetworkPeering -Name spoke2vnet-to-hubvnet -VirtualNetwork $virtualNetwork03 -RemoteVirtualNetworkId $virtualNetwork01.Id
 ```
+
 3. Create a local file in C:\temp to add the new address space that you would like to insert in your virtual network. Run follow command on powershell:
 
 ```powershell

@@ -20,16 +20,6 @@ Param(
     $addvnetPath
 )
 
-
-
-#$vnetname = 'hub-vnet'
-#$rg = "privatelink-dns-microhack-rg"
-#$exportPath = "C:\temp"
-#$addvnetPath = "C:\temp\vnet.txt"
-
-
-
-
 $peeringtmp = Get-AzVirtualNetworkPeering -VirtualNetworkName $vnetname -ResourceGroupName $rg
 
 #Function 
@@ -65,8 +55,7 @@ function Get-VirtualNetworkPeeringInfo() {
 Write-Host "*********************************************" -ForegroundColor Yellow 
 Write-Host "********** vNET Peering Information *********" -ForegroundColor Yellow 
 Write-Host "*********************************************" -ForegroundColor Yellow 
-Get-VirtualNetworkPeeringInfo | Out-GridView
-
+Get-VirtualNetworkPeeringInfo | Format-Table
 
 $confirmationbkp = Read-Host "Do you want to create a backup file ? [y/n]"
 Clear-Host
