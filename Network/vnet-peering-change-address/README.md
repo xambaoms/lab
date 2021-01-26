@@ -100,7 +100,7 @@ azure-vnetpeering-addess-spacemaintenace.ps1 -vnetname hub-vnet -rg lab-adressSp
 ***Figure 2 - The process to add new address space, remove peering and restabish again***
 
   > Note: Choice **"Yes" [y]** or **"No [n]"** to follow the procedure to add a new address space inside the virtual network.
-## Clean All Resources after the hands-on lab
+## Clean All Resources after the lab
 
 After you have successfully completed the lab, you will want to delete the Resource Groups.Run the following command on Azure Cloud Shell:
 
