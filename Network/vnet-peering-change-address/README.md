@@ -103,6 +103,10 @@ azure-vnetpeering-addess-spacemaintenace.ps1 -vnetname hub-vnet -rg lab-adressSp
 
 ## Clean All Resources after the hands-on lab
 
-After you have successfully completed the lab, you will want to delete the Resource Groups.
+After you have successfully completed the lab, you will want to delete the Resource Groups.Run the following command on Azure Cloud Shell:
+
+```powershell
+Get-AzureRmResourceGroup -Name "lab-adressSpace-maintance-vnetpeering-rg" | Remove-AzureRmResourceGroup -Verbose -Force
+```
 ## Contributing
 Pull requests are welcome. For major changes. Please make sure to update tests as appropriate.
