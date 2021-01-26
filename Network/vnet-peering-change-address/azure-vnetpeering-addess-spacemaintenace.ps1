@@ -10,11 +10,6 @@ Param(
     $rg,
     
     [Parameter(Mandatory=$true,
-    HelpMessage="Add path to export the vNET Peering backup file")]
-    [String]
-    $exportPat, 
-
-    [Parameter(Mandatory=$true,
     HelpMessage="Inform path and file name with extesion to Add the address space inside vNET. For example: c:\temp\vnet.txt")]
     [String]
     $addvnetPath
@@ -65,7 +60,7 @@ Clear-Host
         Write-Progress -Activity "Sleep" -Completed  
         Start-Sleep 2  
         New-Item -ItemType file -Path "$exportPath\$($vnetname)-peerings.txt" -Force
-        Get-VirtualNetworkPeeringInfo | Format-Table | Out-File "$exportPath\$($vnetname)-peerings.txt"
+        Get-VirtualNetworkPeeringInfo | Format-Table | Out-File "$($vnetname)-peerings.txt"
         }
         else {exit}
    

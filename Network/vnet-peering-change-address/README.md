@@ -14,14 +14,16 @@ Add-AzAccount #Logon on your Azure Tenant
 Get-AzContext # Check you have selected the correct Azure Subscription
 Set-AzContext -Subscription <Subscription Name> # Set appropriate Subscription
 ```
-- Clone the GitHub repository:
+- Create new folder and Change directory:
+```powershell
+New-Item -Name vnetpeering-addess-spacemaintenace -ItemType Directory
+cd ./vnet-peering-change-address
+```
+- Download powershell script from the GitHub repository:
 
 ```powershell
-git clone https://github.com/adicout/lab/tree/master/Network/vnet-peering-change-address
-```
-- Change directory:
-```powershell
-cd ./vnet-peering-change-address
+New-Item -Name vnetpeering-addess-spacemaintenace -ItemType Directory
+Invoke-WebRequest -Uri https://github.com/adicout/lab/blob/master/Network/vnet-peering-change-address/azure-vnetpeering-addess-spacemaintenace.ps1 -OutFile azure-vnetpeering-addess-spacemaintenace.ps1
 ```
 ## Known Issues
 
@@ -78,17 +80,15 @@ Add-AzVirtualNetworkPeering -Name hubvnet-to-spoke2vnet -VirtualNetwork $virtual
 Add-AzVirtualNetworkPeering -Name spoke2vnet-to-hubvnet -VirtualNetwork $virtualNetwork03 -RemoteVirtualNetworkId $virtualNetwork01.Id
 ```
 
-3. Create a local file in C:\temp to add the new address space that you would like to insert in your virtual network. Run follow command on powershell:
+3. Create a file to add the new address space that you would like to insert in your virtual network. Run follow command on powershell:
 
 ```powershell
 New-Item "add_new_address_space.txt" -ItemType File -Value "10.0.4.0/24"
 ```
-
 4. Run the powershell script in your machine to get vNET peering information and add new address space inside of virtual network (hub-vnet). Run the following command:
 
 ```powershell
-azure-vnetpeering-addess-spacemaintenace.ps1 -vnetname hub-vnet -rg lab-adressSpace-maintance-vnetpeering-rg -exportPat C:\temp -addvnetPath c:\temp\add_new_address_space.txt
+azure-vnetpeering-addess-spacemaintenace.ps1 -vnetname hub-vnet -rg lab-adressSpace-maintance-vnetpeering-rg -exportPat ./ -addvnetPath add_new_address_space.txt
 ```
 ## Contributing
-
 Pull requests are welcome. For major changes. Please make sure to update tests as appropriate.
