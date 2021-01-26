@@ -23,7 +23,7 @@ cd ./vnet-peering-change-address
 
 ```powershell
 New-Item -Name vnetpeering-addess-spacemaintenace -ItemType Directory
-Invoke-WebRequest -Uri https://github.com/adicout/lab/blob/master/Network/vnet-peering-change-address/azure-vnetpeering-addess-spacemaintenace.ps1 -OutFile azure-vnetpeering-addess-spacemaintenace.ps1
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/adicout/lab/master/Network/vnet-peering-change-address/azure-vnetpeering-addess-spacemaintenace.ps1 -OutFile azure-vnetpeering-addess-spacemaintenace.ps1
 ```
 ## Known Issues
 
