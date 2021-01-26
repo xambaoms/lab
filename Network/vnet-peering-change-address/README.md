@@ -33,13 +33,12 @@ Invoke-WebRequest -Uri https://github.com/adicout/lab/blob/master/Network/vnet-p
 - Save the powershell script file (*azure-vnetpeering-addess-spacemaintenace.ps1*) in specific path and add the required parameters:
     - **$vnetname** = "Add Virtual Network Name"
     - **$rg** = "Add Resource Group Virtual Network"
-    - **$exportPat** = "Add path to export the vNET Peering backup file"
     - **$addvnetPath** = "Inform path and file name with extesion to Add the address space inside vNET. For    example: c:\temp\vnet.txt"
 
 Run the command:
 
 ```powershell
-azure-vnetpeering-addess-spacemaintenace.ps1 -vnetname vNETName -rg ResourceGroup -exportPat FilePath -addvnetPath FullFilePath
+azure-vnetpeering-addess-spacemaintenace.ps1 -vnetname vNETName -rg ResourceGroup -addvnetPath FullFilePath
 ```
 ## Lab
 In this lab, you will setup two virtual networks in a hub-and-spoke design and configure a azure private peering between both vNETs. You will execute the powershell script to print the peering information, take a backup of all vNET information and add new address space into the hub vNET using a file with .txt extension. 
@@ -83,12 +82,27 @@ Add-AzVirtualNetworkPeering -Name spoke2vnet-to-hubvnet -VirtualNetwork $virtual
 3. Create a file to add the new address space that you would like to insert in your virtual network. Run follow command on powershell:
 
 ```powershell
-New-Item "add_new_address_space.txt" -ItemType File -Value "10.0.4.0/24"
+New-Item "add_new_address_space.txt" -ItemType File -Value "10.0.5.0/24" 
 ```
-4. Run the powershell script in your machine to get vNET peering information and add new address space inside of virtual network (hub-vnet). Run the following command:
+4. Run the powershell script to get vNET peering information and add new address space inside of virtual network (hub-vnet). Run the following command:
 
 ```powershell
-azure-vnetpeering-addess-spacemaintenace.ps1 -vnetname hub-vnet -rg lab-adressSpace-maintance-vnetpeering-rg -exportPat ./ -addvnetPath add_new_address_space.txt
+azure-vnetpeering-addess-spacemaintenace.ps1 -vnetname hub-vnet -rg lab-adressSpace-maintance-vnetpeering-rg  -addvnetPath add_new_address_space.txt
 ```
+**Output below will shows a summary of vNET Peering Information and processo to add new addres space inside of virtual network.**
+
+![](./images/get-vnet-peering-info.PNG)
+
+***Figure 1 - vNET Peering Information***
+
+![](./images/add-process-new-address-space.PNG)
+
+***Figure 2 - The process to add new address space, remove peering and restabish again***
+
+  > Note: Choice **"Yes" [y]** or **"No [n]"** to follow the procedure to add a new address space inside the virtual network.
+
+## Clean All Resources after the hands-on lab
+
+After you have successfully completed the lab, you will want to delete the Resource Groups.
 ## Contributing
 Pull requests are welcome. For major changes. Please make sure to update tests as appropriate.

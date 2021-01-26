@@ -59,7 +59,7 @@ Clear-Host
         Start-Sleep 3  
         Write-Progress -Activity "Sleep" -Completed  
         Start-Sleep 2  
-        New-Item -ItemType file -Path "$($vnetname)-peerings.txt" -Force
+        #New-Item -ItemType file -Path "$($vnetname)-peerings.txt" -Force
         Get-VirtualNetworkPeeringInfo | Format-Table | Out-File "$($vnetname)-peerings.txt"
         }
         else {exit}
