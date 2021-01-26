@@ -91,7 +91,7 @@ azure-vnetpeering-addess-spacemaintenace.ps1 -vnetname hub-vnet -rg lab-adressSp
 ```
 **Output below will show a summary of vNET Peering Information and process to add new address space inside of virtual network.**
 
-![](./images/get-vnet-peering-info.PNG | width=100)
+![](./images/get-vnet-peering-info.PNG)
 
 ***Figure 1 - vNET Peering Information***
 
