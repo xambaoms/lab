@@ -2,7 +2,11 @@
 
 ## Introduction
 
-This script dumps all vNET peering information with their relationship and will export all information to a backup file. You will set up the new address space on vNET with vNET peering connected from the virtual network address space file.
+In this lab, you will set up three virtual networks in a hub-and-spoke design and establish a vNET peering between them to simulated a limitation on the virtual network to add/modify the address space while VNet Peering is in use. You will also run a Powershell script to get all vNET peering information from a virtual network that your choose. Additionally, it will make it possible to generate a backup of all vNET Peering information during the Powershell script execution and add new address spaces inside a virtual network from a.txt file.
+ 
+## Known Issues
+
+- After you establish a vNET peering inside a virtual network, it is impossible to change the address spaces due to a blocker on the virtual network. You will need to remove peering before adding a new address space.
 
 ## Prerequisites
 
@@ -25,10 +29,6 @@ cd ./vnet-peering-change-address
 New-Item -Name vnetpeering-addess-spacemaintenace -ItemType Directory
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/adicout/lab/master/Network/vnet-peering-change-address/azure-vnetpeering-addess-spacemaintenace.ps1 -OutFile azure-vnetpeering-addess-spacemaintenace.ps1
 ```
-## Known Issues
-
-- After you establish a vNET peering is it not possible to change the address spaces inside virtual network without removing the vNET peering.
-
 ## Script
 - Save the powershell script file (*azure-vnetpeering-addess-spacemaintenace.ps1*) in a specific path and add the required parameters:
     - **$vnetname** = "Add Virtual Network Name"
