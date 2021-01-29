@@ -1,8 +1,8 @@
-# Azure Labs (Networking)- Address Space Maintance with vNET Peering
+# Azure Labs (Networking) - Active/Active Azure VPN Gateway to AWS with IKEv2 and BGP
 
 ## Introduction
 
-In this lab, you will set up three virtual networks in a hub-and-spoke design and establish a vNET peering between them to simulated a limitation on the virtual network to add/modify the address space while VNet Peering is in use. You will also run a Powershell script to get all vNET peering information from a virtual network that your choose. Additionally, it will make it possible to generate a backup of all vNET Peering information during the Powershell script execution and add new address spaces inside a virtual network from a.txt file.
+
  
 ## Known Issues
 
