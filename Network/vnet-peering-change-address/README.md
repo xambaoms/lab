@@ -1,4 +1,4 @@
-# Azure Labs (Networking)- Address Space Maintance with vNET Peering
+# Azure Labs (Networking) - Address Space Maintance with vNET Peering
 
 ## Introduction
 
