@@ -1,53 +1,33 @@
-# Azure Labs (Networking) - Active/Active Azure VPN Gateway to AWS with IKEv2 and BGP
+# Azure Labs (Networking) - Hub-Spoke design - Azure VPN Gateway to AWS VPG with IKEv2 and BGP
 
 ## Introduction
+This lab will guide you how to build a IPSEC VPN tunnel w/IKEv2 between a AWS VPG and the Azure VPN gateway with BGP. Before you had to use just static route to establish site-to-site between Azure and AWS, now it is possible to use the BGP and APIPA address space.
 
+ All Azure configs are done in Azure CLI and, you can change them as needed to match your environment. 
 
- 
-## Known Issues
+ > Note: 
 
-- After you establish a vNET peering inside a virtual network, it is impossible to change the address spaces due to a blocker on the virtual network. You will need to remove peering before adding a new address space.
+ **References:**</br>
+ [How to configure BGP on Azure VPN Gateways](https://docs.microsoft.com/en-us/azure/vpn-gateway/bgp-howto)
 
 ## Prerequisites
 
-- Install the Powershell [Az modules](https://docs.microsoft.com/pt-br/powershell/azure/install-az-ps?view=azps-5.1.0) or use the [Azure Cloud Shell](https://docs.microsoft.com/en-us/azure/cloud-shell/overview) to run it.
+- Install the Az ClI [Install the Azure CLI](https://docs.microsoft.com/pt-br/cli/azure/install-azure-cli) or use the [Azure Cloud Shell](https://docs.microsoft.com/en-us/azure/cloud-shell/overview) to run it.
 - Ensure you are properly logged in to your tenant and with a subscription selected. You can check that by using:
 
-```powershell
-Add-AzAccount #Logon on your Azure Tenant
-Get-AzContext # Check you have selected the correct Azure Subscription
-Set-AzContext -Subscription <Subscription Name> # Set appropriate Subscription
+```azure cli
+az account list --output table
+az account set --subscription "My Subscription"
 ```
-- Create new folder and Change directory:
-```powershell
-New-Item -Name vnetpeering-addess-spacemaintenace -ItemType Directory
-cd ./vnet-peering-change-address
-```
-- Download powershell script from the GitHub repository:
 
-```powershell
-New-Item -Name vnetpeering-addess-spacemaintenace -ItemType Directory
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/adicout/lab/master/Network/vnet-peering-change-address/azure-vnetpeering-addess-spacemaintenace.ps1 -OutFile azure-vnetpeering-addess-spacemaintenace.ps1
-```
-## Script
-- Save the powershell script file (*azure-vnetpeering-addess-spacemaintenace.ps1*) in a specific path and add the required parameters:
-    - **$vnetname** = "Add Virtual Network Name"
-    - **$rg** = "Add Resource Group Virtual Network"
-    - **$addvnetPath** = "Inform path and file name with extesion to Add the address space inside vNET. For    example: c:\temp\vnet.txt"
-
-Run the command:
-
-```powershell
-azure-vnetpeering-addess-spacemaintenace.ps1 -vnetname vNETName -rg ResourceGroup -addvnetPath FullFilePath
-```
 ## Lab
 In this lab, you will setup two virtual networks in a hub-and-spoke design and configure an Azure Private Peering between both vNETs. You will execute the Powershell script to print the peering information, take a backup of all virtual network information and add new address space into the hub vNET using a file with a .txt extension. 
 
 See the base topology:
 
-![Network Architecture](./images/hub-spoke.png)
+![Network Architecture](./images/lab-architeture.png)
 
-Create the Lab environment using the Powershell inside Azure Cloud Shell.
+Create the Lab environment using the Azure CLI inside Azure Cloud Shell.
 
 1. To start Azure Cloud Shell:
 
@@ -57,26 +37,28 @@ Create the Lab environment using the Powershell inside Azure Cloud Shell.
 
 2. Wait for the windows appear and enter into the prompt with the following information:
 
-```powershell
-** Virtual Networks**
-New-AzResourceGroup -Name lab-adressSpace-maintance-vnetpeering-rg -Location eastus2
-$virtualNetwork01 = New-AzVirtualNetwork -ResourceGroupName lab-adressSpace-maintance-vnetpeering-rg -Location eastus2 -Name hub-vnet -AddressPrefix 10.0.1.0/24
-$subnetConfig01 = Add-AzVirtualNetworkSubnetConfig -Name hubSubnet -AddressPrefix 10.0.1.0/24 -VirtualNetwork $virtualNetwork01
-$virtualNetwork01 | Set-AzVirtualNetwork
-$virtualNetwork02 = New-AzVirtualNetwork -ResourceGroupName lab-adressSpace-maintance-vnetpeering-rg -Location eastus2 -Name spoke1-vnet -AddressPrefix 10.0.2.0/24
-$subnetConfig02 = Add-AzVirtualNetworkSubnetConfig -Name spoke1Subnet -AddressPrefix 10.0.2.0/24 -VirtualNetwork $virtualNetwork02
-$virtualNetwork02 | Set-AzVirtualNetwork
-$virtualNetwork03 = New-AzVirtualNetwork -ResourceGroupName lab-adressSpace-maintance-vnetpeering-rg -Location eastus2 -Name spoke2-vnet -AddressPrefix 10.0.3.0/24
-$subnetConfig03 = Add-AzVirtualNetworkSubnetConfig -Name spoke2Subnet -AddressPrefix 10.0.3.0/24 -VirtualNetwork $virtualNetwork03
-$virtualNetwork03 | Set-AzVirtualNetwork
+```azure cli
+** Virtual Network - HUB **
+$location = 'eastus2'
+$rg = 'lab-aws-vpn-to-azurevpngw-ikev2-bgp-rg'
+az group create --name $rg --location $location
+az network vnet create --resource-group $rg --name az-hub-vnet --location $location --address-prefixes 10.0.0.0/16 --subnet-name GatewaySubnet --subnet-prefix 10.0.1.0/27
 ```
 
-```powershell
-** vNET Peering**
-Add-AzVirtualNetworkPeering -Name hubvnet-to-spoke1vnet -VirtualNetwork $virtualNetwork01 -RemoteVirtualNetworkId $virtualNetwork02.Id
-Add-AzVirtualNetworkPeering -Name spoke1vnet-to-hubvnet -VirtualNetwork $virtualNetwork02 -RemoteVirtualNetworkId $virtualNetwork01.Id
-Add-AzVirtualNetworkPeering -Name hubvnet-to-spoke2vnet -VirtualNetwork $virtualNetwork01 -RemoteVirtualNetworkId $virtualNetwork03.Id
-Add-AzVirtualNetworkPeering -Name spoke2vnet-to-hubvnet -VirtualNetwork $virtualNetwork03 -RemoteVirtualNetworkId $virtualNetwork01.Id
+```azure cli
+** Virtual Network - SPOKE **
+az network vnet create --resource-group $rg --name az-spoke-vnet --location $location --address-prefixes 10.1.0.0/16 --subnet-name websubnet --subnet-prefix 10.1.1.0/24
+```
+``` azure cli
+$hubvNet1Id=$(az network vnet show --resource-group $rg --name az-hub-vnet --query id --out tsv)
+$spokevNet1Id=$(az network vnet show --resource-group $rg --name az-spoke-vnet --query id --out tsv)
+az network vnet peering create --name to-spokevnet --resource-group $rg --vnet-name az-hub-vnet --remote-vnet $spokevNet1Id --allow-vnet-access 
+az network vnet peering create --name to-hubvnet --resource-group $rg --vnet-name az-spoke-vnet --remote-vnet $hubvNet1Id --allow-vnet-access 
+```
+
+```azure cli
+az network public-ip create --name azure-vpngw-pip --resource-group $rg --allocation-method Dynamic
+az network vnet-gateway create --name azure-vpngw --public-ip-address azure-vpngw-pip --resource-group $rg --vnet az-hub-vnet --gateway-type Vpn --vpn-type RouteBased --sku VpnGw1 --asn 65001 --bgp-peering-address 169.254.21.2 --no-wait
 ```
 
 3. Create a file to add the new address space that you would like to insert in your virtual network. Run follow command on Powershell:
