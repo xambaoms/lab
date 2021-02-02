@@ -5,21 +5,18 @@ This lab will guide you how to build a IPSEC VPN tunnel w/IKEv2 between a AWS VP
 
  All Azure configs are done in Azure CLI and, you can change them as needed to match your environment. 
 
- > Note: 
-
  **References:**</br>
  [How to configure BGP on Azure VPN Gateways](https://docs.microsoft.com/en-us/azure/vpn-gateway/bgp-howto)
 
 ## Prerequisites
 
-- Install the Az ClI [Install the Azure CLI](https://docs.microsoft.com/pt-br/cli/azure/install-azure-cli) or use the [Azure Cloud Shell](https://docs.microsoft.com/en-us/azure/cloud-shell/overview) to run it.
+- Install the Az CLI [Install the Azure CLI](https://docs.microsoft.com/pt-br/cli/azure/install-azure-cli) or use the [Azure Cloud Shell](https://docs.microsoft.com/en-us/azure/cloud-shell/overview) to run it.
 - Ensure you are properly logged in to your tenant and with a subscription selected. You can check that by using:
 
 ```azure cli
 az account list --output table
 az account set --subscription "My Subscription"
 ```
-
 ## Lab
 In this lab, you will setup two virtual networks in a hub-and-spoke design and configure an Azure Private Peering between both vNETs. You will execute the Powershell script to print the peering information, take a backup of all virtual network information and add new address space into the hub vNET using a file with a .txt extension. 
 
@@ -27,7 +24,7 @@ See the base topology:
 
 ![Network Architecture](./images/lab-architeture.png)
 
-Create the Lab environment using the Azure CLI inside Azure Cloud Shell.
+Create the Lab environment using the Azure CLI inside Azure Cloud Shell for Azure resources.
 
 1. To start Azure Cloud Shell:
 
@@ -49,7 +46,9 @@ az network vnet create --resource-group $rg --name az-hub-vnet --location $locat
 ** Virtual Network - SPOKE **
 az network vnet create --resource-group $rg --name az-spoke-vnet --location $location --address-prefixes 10.1.0.0/16 --subnet-name websubnet --subnet-prefix 10.1.1.0/24
 ```
+
 ``` azure cli
+** vNET Peerings -  **
 $hubvNet1Id=$(az network vnet show --resource-group $rg --name az-hub-vnet --query id --out tsv)
 $spokevNet1Id=$(az network vnet show --resource-group $rg --name az-spoke-vnet --query id --out tsv)
 az network vnet peering create --name to-spokevnet --resource-group $rg --vnet-name az-hub-vnet --remote-vnet $spokevNet1Id --allow-vnet-access 
@@ -57,31 +56,57 @@ az network vnet peering create --name to-hubvnet --resource-group $rg --vnet-nam
 ```
 
 ```azure cli
+** VPN Gateway -  **
 az network public-ip create --name azure-vpngw-pip --resource-group $rg --allocation-method Dynamic
-az network vnet-gateway create --name azure-vpngw --public-ip-address azure-vpngw-pip --resource-group $rg --vnet az-hub-vnet --gateway-type Vpn --vpn-type RouteBased --sku VpnGw1 --asn 65001 --bgp-peering-address 169.254.21.2 --no-wait
+az network vnet-gateway create --name azure-vpngw --public-ip-address azure-vpngw-pip --resource-group $rg --vnet az-hub-vnet --gateway-type Vpn --vpn-type RouteBased --sku VpnGw1 --asn 65001 --no-wait
 ```
 
-3. Create a file to add the new address space that you would like to insert in your virtual network. Run follow command on Powershell:
+Build the AWS resources using the AWS CLI.
 
-```powershell
-New-Item "add_new_address_space.txt" -ItemType File -Value "10.0.5.0/24" 
+1. To start AWS CloudShell:
+
+    - Select the Cloud Shell button on the menu bar at the upper in the AWS portal. ->
+    ![](./images/aws-hdi-cloud-shell-menu.png)
+
+2. Wait for the windows appear and enter into the prompt with the following information:
+
+```aws cli
+** Variables, VPC and Subnets  **
+AWS_REGION="us-east-1"
+VPC_NAME="vpc-us-aws"
+VPC_CIDR="10.2.0.0/16"
+SUBNET_PRIVATE_NAME="ec2subnet"
+SUBNET_PRIVATE_CIDR="10.2.1.0/24"
+ROUTE_TABLE_NAME="rt-ec2subnet"'
+VPC_ID=$(aws ec2 create-vpc --cidr-block $VPC_CIDR --query 'Vpc.{VpcId:VpcId}' --output text --region $AWS_REGION)
+aws ec2 create-tags --resources $VPC_ID --tags "Key=Name,Value=$VPC_NAME" --region $AWS_REGION
+SUBNET_PRIVATE_ID=$(aws ec2 create-subnet --vpc-id $VPC_ID --cidr-block $SUBNET_PRIVATE_CIDR --query 'Subnet.{SubnetId:SubnetId}' --output text --region $AWS_REGION)
+aws ec2 create-tags --resources $SUBNET_PRIVATE_ID --tags "Key=Name,Value=$SUBNET_PRIVATE_NAME" --region $AWS_REGION
 ```
-4. Run the Powershell script to get vNET peering information and add new address space inside of virtual network (hub-vnet). Run the following command:
 
-```powershell
-azure-vnetpeering-addess-spacemaintenace.ps1 -vnetname hub-vnet -rg lab-adressSpace-maintance-vnetpeering-rg  -addvnetPath add_new_address_space.txt
+```aws cli
+** IG,  Route Table **
+IGW_ID=$(aws ec2 create-internet-gateway --query 'InternetGateway.{InternetGatewayId:InternetGatewayId}' --output text --region $AWS_REGION)
+aws ec2 attach-internet-gateway --vpc-id $VPC_ID --internet-gateway-id $IGW_ID --region $AWS_REGION
+ROUTE_TABLE_ID=$(aws ec2 create-route-table --vpc-id $VPC_ID --query 'RouteTable.{RouteTableId:RouteTableId}' --output text --region $AWS_REGION)
+aws ec2 create-tags --resources $ROUTE_TABLE_ID --tags "Key=Name,Value=$ROUTE_TABLE_NAME" --region $AWS_REGION
+RESULT=$(aws ec2 create-route --route-table-id $ROUTE_TABLE_ID --destination-cidr-block 0.0.0.0/0 --gateway-id $IGW_ID --region $AWS_REGION)
+RESULT=$(aws ec2 associate-route-table --subnet-id $SUBNET_PRIVATE_ID --route-table-id $ROUTE_TABLE_ID --region $AWS_REGION)
+aws ec2 modify-subnet-attribute --subnet-id $SUBNET_PRIVATE_ID --map-public-ip-on-launch --region $AWS_REGION
 ```
-**Output below will show a summary of vNET Peering Information and process to add new address space inside of virtual network.**
 
-![](./images/get-vnet-peering-info.PNG)
+```aws cli
+** EC2, Security Group amd Key Pair **
+aws ec2 create-security-group --group-name sg_ec2 --description "Lab - Azure VPN Gateway to AWS VPG with IKEv2 and BGP" --vpc-id $VPC_ID
+SG_ID=$(aws ec2 describe-security-groups --filters Name=group-name,Values=sg_ec2 --query "SecurityGroups[*].{GroupId:GroupId}" --output text --region $AWS_REGION)
+aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 22 --cidr 0.0.0.0/0
+aws ec2 create-key-pair --key-name aws-key-ec2 --query 'KeyMaterial' --output text > aws-key-ec2.pem
+aws ec2 run-instances --image-id ami-0885b1f6bd170450c --security-group-ids $SG_ID --instance-type t2.micro --key-name aws-key-ec2 --private-ip-address 10.2.1.10 --subnet-id $SUBNET_PRIVATE_ID
+aws ec2 create-tags --resources $EC2_ID --tags "Key=Name,Value=$VPC_NAME" --region $AWS_REGION
+```
 
-***Figure 1 - vNET Peering Information***
 
-![](./images/add-process-new-address-space.PNG)
 
-***Figure 2 - The process to add new address space, remove peering and restabish again***
-
-  > Note: Choice **"Yes" [y]** or **"No [n]"** to follow the procedure to add a new address space inside the virtual network.
 ## Clean All Resources after the lab
 
 After you have successfully completed the lab, you will want to delete the Resource Groups.Run the following command on Azure Cloud Shell:
