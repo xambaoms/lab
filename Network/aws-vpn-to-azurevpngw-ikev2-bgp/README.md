@@ -36,31 +36,38 @@ Create the Lab environment using the Azure CLI inside Azure Cloud Shell for Azur
 
 ```azure cli
 ** Virtual Network - HUB **
-$location = 'eastus2'
-$rg = 'lab-aws-vpn-to-azurevpngw-ikev2-bgp-rg'
+location='eastus2'
+rg='lab-aws-vpn-to-azurevpngw-ikev2-bgp-rg'
 az group create --name $rg --location $location
 az network vnet create --resource-group $rg --name az-hub-vnet --location $location --address-prefixes 10.0.0.0/16 --subnet-name GatewaySubnet --subnet-prefix 10.0.1.0/27
 ```
 
 ```azure cli
 ** Virtual Network - SPOKE **
-az network vnet create --resource-group $rg --name az-spoke-vnet --location $location --address-prefixes 10.1.0.0/16 --subnet-name websubnet --subnet-prefix 10.1.1.0/24
+az network vnet create --resource-group $rg --name az-spoke-vnet --location $location --address-prefixes 10.1.0.0/16 --subnet-name vmsubnet --subnet-prefix 10.1.1.0/24
 ```
 
 ``` azure cli
 ** vNET Peerings -  **
-$hubvNet1Id=$(az network vnet show --resource-group $rg --name az-hub-vnet --query id --out tsv)
-$spokevNet1Id=$(az network vnet show --resource-group $rg --name az-spoke-vnet --query id --out tsv)
+hubvNet1Id=$(az network vnet show --resource-group $rg --name az-hub-vnet --query id --out tsv)
+spokevNet1Id=$(az network vnet show --resource-group $rg --name az-spoke-vnet --query id --out tsv)
 az network vnet peering create --name to-spokevnet --resource-group $rg --vnet-name az-hub-vnet --remote-vnet $spokevNet1Id --allow-vnet-access 
 az network vnet peering create --name to-hubvnet --resource-group $rg --vnet-name az-spoke-vnet --remote-vnet $hubvNet1Id --allow-vnet-access 
 ```
 
 ```azure cli
-** VPN Gateway -  **
+** VPN Gateway and Update vNET Peerings  **
 az network public-ip create --name azure-vpngw-pip --resource-group $rg --allocation-method Dynamic
 az network vnet-gateway create --name azure-vpngw --public-ip-address azure-vpngw-pip --resource-group $rg --vnet az-hub-vnet --gateway-type Vpn --vpn-type RouteBased --sku VpnGw1 --asn 65001 --no-wait
+az network vnet peering update -g $rg -n to-spokevnet --vnet-name az-hub-vnet --set allowGatewayTransit=true
+az network vnet peering update -g $rg -n to-hubvnet --vnet-name az-spoke-vnet --set useRemoteGateways=true --set allowForwardedTraffic=true
 ```
-
+```azure cli
+** Virtual Machine  **
+az network public-ip create --name azlinuxvm01-pip --resource-group $rg --location $location --allocation-method Dynamic
+az network nic create --resource-group $rg -n azlinuxvm01-nic --location $location --subnet vmsubnet --private-ip-address 10.1.1.10 --vnet-name az-spoke-vnet --public-ip-address azlinuxvm01-pip --ip-forwarding true
+az vm create -n azlinuxvm01 -g $rg --image UbuntuLTS --admin-username azureuser --admin-password Msft123Msft123 --nics azlinuxvm01-nic --no-wait
+```
 Build the AWS resources using the AWS CLI.
 
 1. To start AWS CloudShell:
@@ -106,6 +113,7 @@ aws ec2 run-instances --image-id ami-0885b1f6bd170450c --security-group-ids $SG_
 EC2_ID=$(aws ec2 describe-instances --filters Name=network-interface.addresses.private-ip-address,Values=10.2.1.10 --query 'Reservations[*].Instances[*].{Instance:InstanceId}' --output text --region $AWS_REGION)
 aws ec2 create-tags --resources $EC2_ID --tags "Key=Name,Value=$EC2_NAME" --region $AWS_REGION
 ```
+
 ```aws cli
 ** Customer Gateway, VPW and VNC**
 aws ec2 create-customer-gateway --type ipsec.1 --public-ip <Azure VPN GW - Public IP Address> --bgp-asn 65001
@@ -114,11 +122,59 @@ aws ec2 create-vpn-gateway --type ipsec.1 --amazon-side-asn 65002
 VPG_ID=$(aws ec2 describe-vpn-gateways --filters Name=amazon-side-asn,Values=65002 --query 'VpnGateways[*].{VpnGatewayId:VpnGatewayId}' --output text --region $AWS_REGION)
 aws ec2 attach-vpn-gateway --vpn-gateway-id $VPG_ID --vpc-id $VPC_ID
 aws ec2 create-vpn-connection --type ipsec.1 --customer-gateway-id $CGW_ID --vpn-gateway-id $VPG_ID --options TunnelOptions='[{TunnelInsideCidr=169.254.21.0/30,PreSharedKey=Msft123Msft123},{TunnelInsideCidr=169.254.21.10/30,PreSharedKey=Msft123Msft123}]'
+```
 
+```aws cli
+aws ec2 enable-vgw-route-propagation --route-table-id $ROUTE_TABLE_ID --gateway-id $VPG_ID 
+```
+After you execute the AWS CLI to create the enviroment you need to check the configurion to setup on Azure connection. 
+
+Configure the APIPA IP address space on Azure VPN Gateway to connect with AWS VPG.
+
+1.  In Azure, add the IP addres "169.254.21.2" inside VPN Gateway ("azure-vpngw") and save the configuration.
+
+![](./images/azure-vpn-config-apipa.png)
+
+
+Create Local Network Gateway and enter the "AWSVPNPublicIP" public IP. AWS BGP peer over IPSEC is in ASN 65002.
+
+```azure cli
+location='eastus2'
+rg='lab-aws-vpn-to-azurevpngw-ikev2-bgp-rg'
+az network local-gateway create --gateway-ip-address "AWSVPNPublicIP" --name to-aws --resource-group $rg --asn 65002 --local-address-prefixes 169.254.21.1/32 --bgp-peering-address 169.254.21.1
+az network vpn-connection create --name to-aws --resource-group $rg --vnet-gateway1 azure-vpngw --location $location --shared-key Msft123Msft123 --local-gateway2 to-onprem --enable-bgp
+```
+Validate BGP routes being advetised from the Azure VPN GW to the AWS
+
+```azure cli
+az network vnet-gateway list-advertised-routes -g $rg -n azure-vpngw --peer 169.254.21.1 -o table
+```
+![](./images/list-advertised-routes.png)
+
+Validate BGP routes the Azure VPN GW is receiving from the AWS.
+
+```azure cli
+az network vnet-gateway list-learned-routes -g $rg -n azure-vpngw -o table
+```
+![](./images/list-learned-routes.png)
+
+Try to reach Azure virtual machine from EC2 using the ping command: **ping 10.1.1.10**
 ## Clean All Resources after the lab
 
-After you have successfully completed the lab, you will want to delete the Resource Groups.Run the following command on Azure Cloud Shell:
+After you have successfully completed the lab, you will want to delete the Resource Groups. Run the following command on Azure Cloud Shell:
 
+``` Azure CLI
+## Azure Resources
+az group delete --name $rg --location $location
+```
+For AWS resources check out the articles:
+
+ **References:**</br>
+ [How do I delete or terminate my Amazon EC2 resources?](https://aws.amazon.com/premiumsupport/knowledge-center/delete-terminate-ec2/)
+
+ [Deleting a Site-to-Site VPN connection](https://docs.aws.amazon.com/vpn/latest/s2svpn/delete-vpn.html)
+ 
+ [delete-vpc?](https://docs.aws.amazon.com/cli/latest/reference/ec2/delete-vpc.html)
 
 ## Contributing
 Pull requests are welcome. For major changes. Please make sure to update tests as appropriate.
