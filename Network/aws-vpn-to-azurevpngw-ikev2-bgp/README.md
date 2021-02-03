@@ -1,9 +1,9 @@
 # Azure Labs (Networking) - Hub-Spoke design - Azure VPN Gateway to AWS VPG with IKEv2 and BGP
 
 ## Introduction
-This lab will guide you how to build a IPSEC VPN tunnel w/IKEv2 between a AWS VPG and the Azure VPN gateway with BGP. Before you had to use just static route to establish site-to-site between Azure and AWS, now it is possible to use the BGP and APIPA address space.
+This lab will guide you on how to build an IPSEC VPN tunnel w/IKEv2 between an AWS VPG and the Azure VPN gateway with BGP. Before you had to use just a static route to establish site-to-site between Azure and AWS, now it is possible to use the BGP and APIPA address space.
 
- All Azure configs are done in Azure CLI and, you can change them as needed to match your environment. 
+ All Azure configs are done in Azure CLI and AWS CLI and, you can change them as needed to match your environment. 
 
  **References:**</br>
  [How to configure BGP on Azure VPN Gateways](https://docs.microsoft.com/en-us/azure/vpn-gateway/bgp-howto)
@@ -18,13 +18,11 @@ az account list --output table
 az account set --subscription "My Subscription"
 ```
 ## Lab
-In this lab, you will setup two virtual networks in a hub-and-spoke design and configure an Azure Private Peering between both vNETs. You will execute the Powershell script to print the peering information, take a backup of all virtual network information and add new address space into the hub vNET using a file with a .txt extension. 
-
 See the base topology:
 
 ![Network Architecture](./images/lab-architeture.png)
 
-Create the Lab environment using the Azure CLI inside Azure Cloud Shell for Azure resources.
+Create the Lab environment using the Azure CLI on Azure Cloud Shell for Azure resources.
 
 1. To start Azure Cloud Shell:
 
