@@ -114,12 +114,11 @@ aws ec2 create-vpn-gateway --type ipsec.1 --amazon-side-asn 65002
 VPG_ID=$(aws ec2 describe-vpn-gateways --filters Name=amazon-side-asn,Values=65002 --query 'VpnGateways[*].{VpnGatewayId:VpnGatewayId}' --output text --region $AWS_REGION)
 aws ec2 attach-vpn-gateway --vpn-gateway-id $VPG_ID --vpc-id $VPC_ID
 aws ec2 create-vpn-connection --type ipsec.1 --customer-gateway-id $CGW_ID --vpn-gateway-id $VPG_ID --options TunnelOptions='[{TunnelInsideCidr=169.254.21.0/30,PreSharedKey=Msft123Msft123},{TunnelInsideCidr=169.254.21.10/30,PreSharedKey=Msft123Msft123}]'
+
 ## Clean All Resources after the lab
 
 After you have successfully completed the lab, you will want to delete the Resource Groups.Run the following command on Azure Cloud Shell:
 
-```powershell
-Get-AzureRmResourceGroup -Name "lab-adressSpace-maintance-vnetpeering-rg" | Remove-AzureRmResourceGroup -Verbose -Force
-```
+
 ## Contributing
 Pull requests are welcome. For major changes. Please make sure to update tests as appropriate.
