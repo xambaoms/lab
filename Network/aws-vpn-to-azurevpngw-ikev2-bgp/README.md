@@ -173,8 +173,8 @@ For AWS resources check out the articles:
  [How do I delete or terminate my Amazon EC2 resources?](https://aws.amazon.com/premiumsupport/knowledge-center/delete-terminate-ec2/)
 
  [Deleting a Site-to-Site VPN connection](https://docs.aws.amazon.com/vpn/latest/s2svpn/delete-vpn.html)
- 
- [delete-vpc?](https://docs.aws.amazon.com/cli/latest/reference/ec2/delete-vpc.html)
+
+ [delete-vpc](https://docs.aws.amazon.com/cli/latest/reference/ec2/delete-vpc.html)
 
 ## Contributing
 Pull requests are welcome. For major changes. Please make sure to update tests as appropriate.
