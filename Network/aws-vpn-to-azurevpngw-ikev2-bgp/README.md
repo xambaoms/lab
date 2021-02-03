@@ -11,7 +11,9 @@ This lab will guide you on how to build an IPSEC VPN tunnel w/IKEv2 between an A
 ## Prerequisites
 
 - Install the Az CLI [Install the Azure CLI](https://docs.microsoft.com/pt-br/cli/azure/install-azure-cli) or use the [Azure Cloud Shell](https://docs.microsoft.com/en-us/azure/cloud-shell/overview) to run it.
-- Ensure you are properly logged in to your tenant and with a subscription selected. You can check that by using:
+- Install the AWS CLI [Install the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) or use the [AWS CloudShell](https://docs.aws.amazon.com/cloudshell/latest/userguide/welcome.html) to run it.
+- Ensure you are properly logged in AWS Account, check out [How IAM users sign in to your AWS account](https://docs.aws.amazon.com/IAM/latest/UserGuide/getting-started_how-users-sign-in.html)
+- Ensure you are properly logged in to your tenant and with a subscription selected for Azure. You can check that by using:
 
 ```azure cli
 az account list --output table
@@ -125,11 +127,11 @@ aws ec2 create-vpn-connection --type ipsec.1 --customer-gateway-id $CGW_ID --vpn
 ```aws cli
 aws ec2 enable-vgw-route-propagation --route-table-id $ROUTE_TABLE_ID --gateway-id $VPG_ID 
 ```
-After you execute the AWS CLI to create the enviroment you need to check the configurion to setup on Azure connection. 
+After you execute the AWS CLI to create the environment you need to check the configuration to setup an Azure connection. 
 
 Configure the APIPA IP address space on Azure VPN Gateway to connect with AWS VPG.
 
-1.  In Azure, add the IP addres "169.254.21.2" inside VPN Gateway ("azure-vpngw") and save the configuration.
+1.  In Azure, add the IP address "169.254.21.2" inside VPN Gateway ("azure-vpngw") and save the configuration.
 
 ![](./images/azure-vpn-config-apipa.png)
 
@@ -142,21 +144,21 @@ rg='lab-aws-vpn-to-azurevpngw-ikev2-bgp-rg'
 az network local-gateway create --gateway-ip-address "AWSVPNPublicIP" --name to-aws --resource-group $rg --asn 65002 --local-address-prefixes 169.254.21.1/32 --bgp-peering-address 169.254.21.1
 az network vpn-connection create --name to-aws --resource-group $rg --vnet-gateway1 azure-vpngw --location $location --shared-key Msft123Msft123 --local-gateway2 to-onprem --enable-bgp
 ```
-Validate BGP routes being advetised from the Azure VPN GW to the AWS
+Validate the BGP routes being advertised from the Azure VPN GW to the AWS.
 
 ```azure cli
 az network vnet-gateway list-advertised-routes -g $rg -n azure-vpngw --peer 169.254.21.1 -o table
 ```
 ![](./images/list-advertised-routes.png)
 
-Validate BGP routes the Azure VPN GW is receiving from the AWS.
+Validate the BGP routes the Azure VPN GW is receiving from the AWS.
 
 ```azure cli
 az network vnet-gateway list-learned-routes -g $rg -n azure-vpngw -o table
 ```
 ![](./images/list-learned-routes.png)
 
-Try to reach Azure virtual machine from EC2 using the ping command: **ping 10.1.1.10**
+Try to reach the Azure virtual machine from EC2 using the ping command: **ping 10.1.1.10**
 ## Clean All Resources after the lab
 
 After you have successfully completed the lab, you will want to delete the Resource Groups. Run the following command on Azure Cloud Shell:
