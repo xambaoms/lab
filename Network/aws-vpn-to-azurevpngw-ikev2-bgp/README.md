@@ -162,7 +162,7 @@ az network vnet-gateway list-learned-routes -g $rg -n azure-vpngw -o table
 ```
 ![](./images/list-learned-routes.png)
 
-Try to reach the Azure virtual machine from EC2 using the ping command: **ping 10.1.1.10**
+You can test the connectivity between Azure and AWS, trying to reach the Azure virtual machine from EC2 using the ping command: **ping 10.1.1.10**
 ## Clean All Resources after the lab
 
 After you have successfully completed the lab, you will want to delete the Resource Groups. Run the following command on Azure Cloud Shell:
