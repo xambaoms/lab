@@ -1,13 +1,17 @@
-# Azure Labs (Networking) - Hub-Spoke design - Azure VPN Gateway to AWS VPG with IKEv2 and BGP
+# Azure Labs (Networking) - Hub-Spoke design - Azure VPN Gateway to AWS VGW with IKEv2 and BGP
 
 ## Introduction
-This lab will guide you on how to build an IPSEC VPN tunnel w/IKEv2 between an AWS VPG and the Azure VPN gateway with BGP. Before you had to use just a static route to establish site-to-site between Azure and AWS, now it is possible to use the BGP and APIPA address space.
+This lab will guide you on building an IPSEC VPN tunnel w/IKEv2 between an AWS VGW and the Azure VPN gateway with BGP. Before, you had to use just a static route to establish site-to-site between Azure and AWS. 
+
+Since [November/2020](https://azure.microsoft.com/da-dk/updates/multiple-new-features-for-azure-vpn-gateway-are-now-generally-available/), the Azure VPN GW supports customers with legacy VPN routers and AWS VGW, GCP VPN, which use Automatic Private IP Addressing (APIPA) addresses as their Border Gateway Protocol (BGP) speaker IP addresses. Now they can establish BGP sessions with Azure VPN gateways using APIPA (169.254.x.x) addresses.
 
  All Azure configs are done in Azure CLI and AWS CLI and, you can change them as needed to match your environment. 
 
  **References:**</br>
- [How to configure BGP on Azure VPN Gateways](https://docs.microsoft.com/en-us/azure/vpn-gateway/bgp-howto)
+ [How to configure BGP on Azure VPN Gateways](https://docs.microsoft.com/en-us/azure/vpn-gateway/bgp-howto)</br>
+ [About BGP with Azure VPN Gateway](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-bgp-overview)
 
+[November/2020](https://azure.microsoft.com/da-dk/updates/multiple-new-features-for-azure-vpn-gateway-are-now-generally-available/)
 ## Prerequisites
 
 - Install the Az CLI [Install the Azure CLI](https://docs.microsoft.com/pt-br/cli/azure/install-azure-cli) or use the [Azure Cloud Shell](https://docs.microsoft.com/en-us/azure/cloud-shell/overview) to run it.
@@ -20,7 +24,7 @@ az account list --output table
 az account set --subscription "My Subscription"
 ```
 ## Lab
-See the base topology:
+Below the draw of our lab:
 
 ![Network Architecture](./images/lab-architeture.png)
 
@@ -170,10 +174,8 @@ az group delete --name $rg --location $location
 For AWS resources check out the articles:
 
  **References:**</br>
- [How do I delete or terminate my Amazon EC2 resources?](https://aws.amazon.com/premiumsupport/knowledge-center/delete-terminate-ec2/)
-
- [Deleting a Site-to-Site VPN connection](https://docs.aws.amazon.com/vpn/latest/s2svpn/delete-vpn.html)
-
+ [How do I delete or terminate my Amazon EC2 resources?](https://aws.amazon.com/premiumsupport/knowledge-center/delete-terminate-ec2/)</br>
+ [Deleting a Site-to-Site VPN connection](https://docs.aws.amazon.com/vpn/latest/s2svpn/delete-vpn.html)</br>
  [delete-vpc](https://docs.aws.amazon.com/cli/latest/reference/ec2/delete-vpc.html)
 
 ## Contributing
