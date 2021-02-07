@@ -10,8 +10,6 @@ Since [November/2020](https://azure.microsoft.com/da-dk/updates/multiple-new-fea
  **References:**</br>
  [How to configure BGP on Azure VPN Gateways](https://docs.microsoft.com/en-us/azure/vpn-gateway/bgp-howto)</br>
  [About BGP with Azure VPN Gateway](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-bgp-overview)
-
-[November/2020](https://azure.microsoft.com/da-dk/updates/multiple-new-features-for-azure-vpn-gateway-are-now-generally-available/)
 ## Prerequisites
 
 - Install the Az CLI [Install the Azure CLI](https://docs.microsoft.com/pt-br/cli/azure/install-azure-cli) or use the [Azure Cloud Shell](https://docs.microsoft.com/en-us/azure/cloud-shell/overview) to run it.
@@ -131,7 +129,6 @@ aws ec2 create-vpn-connection --type ipsec.1 --customer-gateway-id $CGW_ID --vpn
 ```aws cli
 aws ec2 enable-vgw-route-propagation --route-table-id $ROUTE_TABLE_ID --gateway-id $VPG_ID 
 ```
-After you execute the AWS CLI to create the environment you need to check the configuration to setup an Azure connection. 
 
 Configure the APIPA IP address space on Azure VPN Gateway to connect with AWS VPG.
 
@@ -148,6 +145,14 @@ rg='lab-aws-vpn-to-azurevpngw-ikev2-bgp-rg'
 az network local-gateway create --gateway-ip-address "AWSVPNPublicIP" --name to-aws --resource-group $rg --asn 65002 --local-address-prefixes 169.254.21.1/32 --bgp-peering-address 169.254.21.1
 az network vpn-connection create --name to-aws --resource-group $rg --vnet-gateway1 azure-vpngw --location $location --shared-key Msft123Msft123 --local-gateway2 to-onprem --enable-bgp
 ```
+After you finish to create the environment, you need to check the Azure connection configuration.
+
+Validate VPN connection status in Azure CLI
+
+```azure cli
+az network vpn-connection show --name to-aws --resource-group $rg
+```
+
 Validate the BGP routes being advertised from the Azure VPN GW to the AWS.
 
 ```azure cli
