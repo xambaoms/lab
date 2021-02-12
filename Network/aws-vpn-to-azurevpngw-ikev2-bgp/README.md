@@ -107,7 +107,7 @@ aws ec2 modify-subnet-attribute --subnet-id $SUBNET_PRIVATE_ID --map-public-ip-o
 
 ```aws cli
 ** EC2, Security Group amd Key Pair **
-aws ec2 create-security-group --group-name sg_ec2 --description "Lab - Azure VPN Gateway to AWS VPG with IKEv2 and BGP" --vpc-id $VPC_ID
+aws ec2 create-security-group --group-name sg_ec2 --description "Lab - Azure VPN Gateway to AWS VGW with IKEv2 and BGP" --vpc-id $VPC_ID
 SG_ID=$(aws ec2 describe-security-groups --filters Name=group-name,Values=sg_ec2 --query "SecurityGroups[*].{GroupId:GroupId}" --output text --region $AWS_REGION)
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 22 --cidr 0.0.0.0/0
 aws ec2 create-key-pair --key-name aws-key-ec2 --query 'KeyMaterial' --output text > aws-key-ec2.pem
@@ -121,16 +121,16 @@ aws ec2 create-tags --resources $EC2_ID --tags "Key=Name,Value=$EC2_NAME" --regi
 aws ec2 create-customer-gateway --type ipsec.1 --public-ip <Azure VPN GW - Public IP Address> --bgp-asn 65001
 CGW_ID=$(aws ec2 describe-customer-gateways --filters Name=bgp-asn,Values=65001 --query 'CustomerGateways[*].{CustomerGatewayId:CustomerGatewayId}' --output text --region $AWS_REGION)
 aws ec2 create-vpn-gateway --type ipsec.1 --amazon-side-asn 65002
-VPG_ID=$(aws ec2 describe-vpn-gateways --filters Name=amazon-side-asn,Values=65002 --query 'VpnGateways[*].{VpnGatewayId:VpnGatewayId}' --output text --region $AWS_REGION)
-aws ec2 attach-vpn-gateway --vpn-gateway-id $VPG_ID --vpc-id $VPC_ID
-aws ec2 create-vpn-connection --type ipsec.1 --customer-gateway-id $CGW_ID --vpn-gateway-id $VPG_ID --options TunnelOptions='[{TunnelInsideCidr=169.254.21.0/30,PreSharedKey=Msft123Msft123},{TunnelInsideCidr=169.254.21.10/30,PreSharedKey=Msft123Msft123}]'
+VGW_ID=$(aws ec2 describe-vpn-gateways --filters Name=amazon-side-asn,Values=65002 --query 'VpnGateways[*].{VpnGatewayId:VpnGatewayId}' --output text --region $AWS_REGION)
+aws ec2 attach-vpn-gateway --vpn-gateway-id $VGW_ID --vpc-id $VPC_ID
+aws ec2 create-vpn-connection --type ipsec.1 --customer-gateway-id $CGW_ID --vpn-gateway-id $VGW_ID --options TunnelOptions='[{TunnelInsideCidr=169.254.21.0/30,PreSharedKey=Msft123Msft123},{TunnelInsideCidr=169.254.21.10/30,PreSharedKey=Msft123Msft123}]'
 ```
 
 ```aws cli
-aws ec2 enable-vgw-route-propagation --route-table-id $ROUTE_TABLE_ID --gateway-id $VPG_ID 
+aws ec2 enable-vgw-route-propagation --route-table-id $ROUTE_TABLE_ID --gateway-id $VGW_ID 
 ```
 
-Configure the APIPA IP address space on Azure VPN Gateway to connect with AWS VPG.
+Configure the APIPA IP address space on Azure VPN Gateway to connect with AWS VGW.
 
 1.  In Azure, add the IP address "169.254.21.2" inside VPN Gateway ("azure-vpngw") and save the configuration.
 
