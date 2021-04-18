@@ -1,17 +1,15 @@
 # Azure Labs (Networking) - Azure Route Server - Enable Transit Between ExpressRoute and Azure VPN Gateway
-
-
-![Network Architecture](./images/lab-architeture.png)
 ## Introduction
 
 This article describes how to build an environment to enable the transit between ExpressRoute and Azure VPN Gateway using the Azure Route Server. For connecting the **Azure (VNET)** with another cloud provider (AWS), show the ExpressRoute configuration, you will use the [Equinix Network Edge](https://www.equinix.com/services/edge-services/network-edge/) through of the ExpressRoute and DirectConnect. The On-premises data center is connected to Azure by IPSec VPN.  
 
-This article also includes billable components of Equinix. You can also [check out the Equinix Network Edge trial](https://edgeservices.equinix.com/products?p_p_id=catalogportlet_WAR_emergingservicesportlets&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&_catalogportlet_WAR_emergingservicesportlets_productId=2c92a0ff68bf6b420168d0faa31b08c2&_catalogportlet_WAR_emergingservicesportlets_action=product/details) that has the features that are required to complete this lab.
+There is includes billable components of Equinix. You can also [check out the Equinix Network Edge trial](https://edgeservices.equinix.com/products?p_p_id=catalogportlet_WAR_emergingservicesportlets&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&_catalogportlet_WAR_emergingservicesportlets_productId=2c92a0ff68bf6b420168d0faa31b08c2&_catalogportlet_WAR_emergingservicesportlets_action=product/details) that has the features that are required to complete this lab.
 
 > Choose the regions in the cloud providers near the Equinix Cloud Exchange (ECX). 
 
 Below the draw of our lab:
 
+![Network Architecture](/images/lab-architeture.png)
 
 
  All Azure configs are done in Azure CLI and AWS CLI and, you can change them as needed to match your environment. 
