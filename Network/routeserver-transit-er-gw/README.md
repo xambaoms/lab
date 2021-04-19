@@ -111,6 +111,22 @@ az network nic create --name onpremcsrinside-nic  -g $rg --subnet insidesidesubn
 az vm create --resource-group $rg --name onpremcsrvm01 --size Standard_DS3_v2 --nics onpremcsroutside-nic onpremcsrinside-nic  --image cisco:cisco-csr-1000v:17_2_1-byol:17.2.120200508 --admin-username azureuser --admin-password Msft123Msft123 --no-wait
 ```
 
+> After the gateway and CSR have been created, document the public IP address, BGP peer, and ASN for both. 
+
+```azure cli
+az network vnet-gateway list --query [].[name,bgpSettings.asn,bgpSettings.bgpPeeringAddress] -o table --resource-group $rg
+az network public-ip show -g $rg -n <Azure-VNGpubip1> --query "{address: ipAddress}"
+az network public-ip show -g $rg -n <Azure-VNGpubip2> --query "{address: ipAddress}"
+az network public-ip show -g $rg -n <CSR1PublicIP> --query "{address: ipAddress}"
+```
+
+Create Local Network Gateway and Connection . The 192.168.1.1 addrees is the IP of the tunnel interface on the CSR in BGP ASN 65002.
+
+```azure cli
+az network local-gateway create --gateway-ip-address "insert Cisco CSR Public IP" --name to-onprem --resource-group $rg --local-address-prefixes 172.16.1.1/32 --asn 65002 --bgp-peering-address 172.16.1.1
+az network vpn-connection create --name to-onprem --resource-group $rg --vnet-gateway1 azure-vpngw -l $location --shared-key Msft123Msft123 --local-gateway2 to-onprem --enable-bgp
+```
+
 SSH to the CSR and paste in the below Cisco config. Make sure to change "Azure-VNGpubip1" and "Azure-VNGpubip2". 
 
 <pre lang="...">
