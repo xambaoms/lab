@@ -19,9 +19,9 @@ The following diagram shows the architecture that you create in this article:
 
  **References:**</br>
  [What is Azure Route Server](https://docs.microsoft.com/en-us/azure/route-server/overview)</br>
- [Azure Route Server: super powers for your Network Virtual Appliance](https://blog.cloudtrooper.net/2021/03/03/azure-route-server-super-powers-for-your-network-virtual-appliance/)
+ [Azure Route Server: super powers for your Network Virtual Appliance](https://blog.cloudtrooper.net/2021/03/03/azure-route-server-super-powers-for-your-network-virtual-appliance/)</br>
+ [How Network Edge Virtualization for Network Services Takes You Beyond the Data Center](https://blog.equinix.com/blog/2019/11/13/how-network-edge-virtualization-for-network-services-takes-you-beyond-the-data-center/)
  
-
 ## Prerequisites
 
 - Install the Az CLI [Install the Azure CLI](https://docs.microsoft.com/pt-br/cli/azure/install-azure-cli) or use the [Azure Cloud Shell](https://docs.microsoft.com/en-us/azure/cloud-shell/overview) to run it.
@@ -47,15 +47,23 @@ Create the Lab environment using the Azure CLI on Azure Cloud Shell for Azure re
 
 ```azure cli
 ** Virtual Network - HUB **
-location='eastus2'
-rg='lab-aws-vpn-to-azurevpngw-ikev2-bgp-rg'
+location='northcentralus'
+rg='enable-transit-routeserver'
 az group create --name $rg --location $location
-az network vnet create --resource-group $rg --name az-hub-vnet --location $location --address-prefixes 10.0.0.0/16 --subnet-name GatewaySubnet --subnet-prefix 10.0.1.0/27
+az network vnet create --resource-group $rg --name az-hub-vnet --location $location --address-prefixes 10.0.0.0/16 --subnet-name GatewaySubnet --subnet-prefix 10.0.1.0/24
+az network vnet subnet create -g $rg --vnet-name "az-hub-vnet" --name "RouteServerSubnet" --address-prefix "10.0.2.0/24"
 ```
 
 ```azure cli
 ** Virtual Network - SPOKE **
 az network vnet create --resource-group $rg --name az-spoke-vnet --location $location --address-prefixes 10.1.0.0/16 --subnet-name vmsubnet --subnet-prefix 10.1.1.0/24
+```
+
+```azure cli
+** Virtual Network - ONPREM **
+az network vnet create --resource-group $rg --name onprem-vnet --location $location --address-prefixes 192.168.0.0/16 --subnet-name vmsubnet --subnet-prefix 192.168.0.0/24
+az network vnet subnet create --address-prefix 192.168.1.0/24 --name outsidesubnet --resource-group $rg --vnet-name onprem-vnet
+az network vnet subnet create --address-prefix 192.168.2.0/24 --name insidesubnet --resource-group $rg --vnet-name onprem-vnet
 ```
 
 ``` azure cli
@@ -67,18 +75,135 @@ az network vnet peering create --name to-hubvnet --resource-group $rg --vnet-nam
 ```
 
 ```azure cli
-** VPN Gateway and Update vNET Peerings  **
-az network public-ip create --name azure-vpngw-pip --resource-group $rg --allocation-method Dynamic
-az network vnet-gateway create --name azure-vpngw --public-ip-address azure-vpngw-pip --resource-group $rg --vnet az-hub-vnet --gateway-type Vpn --vpn-type RouteBased --sku VpnGw1 --asn 65001 --no-wait
+** VPN Gateway, ER GW, ER Circuit and Update vNET Peerings  **
+az network public-ip create --name azure-vpngw01-pip --resource-group $rg --allocation-method Dynamic
+az network public-ip create --name azure-vpngw02-pip --resource-group $rg --allocation-method Dynamic
+az network public-ip create --name azure-ergw-pip --resource-group $rg --allocation-method Dynamic
+az network vnet-gateway create --name azure-vpngw --public-ip-address azure-vpngw01-pip azure-vpngw02-pip --resource-group $rg --vnet az-hub-vnet --gateway-type Vpn --vpn-type RouteBased --sku VpnGw1 -l $location --asn 65001 --no-wait
+az network vnet-gateway create -g $rg -n azure-ergw --gateway-type ExpressRoute --sku Standard -l $location --vnet az-hub-vnet --public-ip-addresses azure-ergw-pip --no-wait
+az network express-route create -n ercircuit-equinix-chicago --peering-location $er_pop -g $rg --bandwidth 50 --provider Equinix -l Chicago --sku-family MeteredData --sku-tier Standard
 az network vnet peering update -g $rg -n to-spokevnet --vnet-name az-hub-vnet --set allowGatewayTransit=true
 az network vnet peering update -g $rg -n to-hubvnet --vnet-name az-spoke-vnet --set useRemoteGateways=true --set allowForwardedTraffic=true
 ```
+
 ```azure cli
-** Virtual Machine  **
+** Azure Route Server**
+$subnet_id=$(az network vnet subnet show -n "RouteServerSubnet" --vnet-name "az-hub-vnet" -g $rg --query id -o tsv)
+az network routeserver create -n "az-routeserver" -g $rg --hosted-subnet $subnet_id
+az network routeserver update -g $rs -n "az-routeserver" --allow-b2b-traffic true
+```
+
+```azure cli
+** Virtual Machines  **
 az network public-ip create --name azlinuxvm01-pip --resource-group $rg --location $location --allocation-method Dynamic
 az network nic create --resource-group $rg -n azlinuxvm01-nic --location $location --subnet vmsubnet --private-ip-address 10.1.1.10 --vnet-name az-spoke-vnet --public-ip-address azlinuxvm01-pip --ip-forwarding true
 az vm create -n azlinuxvm01 -g $rg --image UbuntuLTS --admin-username azureuser --admin-password Msft123Msft123 --nics azlinuxvm01-nic --no-wait
+az network public-ip create --name onpremlinuxvm01-pip --resource-group $rg --location $location --allocation-method Dynamic
+az network nic create --resource-group $rg -n onpremlinuxvm01-nic --location $location --subnet vmsubnet --private-ip-address 192.168.0.10 --vnet-name onprem-vnet --public-ip-address onpremlinuxvm01-pip 
+az vm create -n onpremlinuxvm01 -g $rg --image UbuntuLTS --admin-username azureuser --location $location --admin-password Msft123Msft123 --nics onpremlinuxvm01-nic --no-wait
 ```
+
+```azure cli
+** Cisco CSR - ONPREM - VPN  **
+az network public-ip create --name onpremcsrvm01-pip --resource-group $rg --idle-timeout 30 --allocation-method Static
+az network nic create --name onpremcsroutside-nic -g $rg --subnet outsidesubnet --private-ip-address 192.168.1.4 --vnet onprem-vnet --public-ip-address onpremcsrvm01-pip --ip-forwarding true
+az network nic create --name onpremcsrinside-nic  -g $rg --subnet insidesidesubnet --private-ip-address 192.168.2.4  --vnet onprem-vnet --ip-forwarding true
+az vm create --resource-group $rg --name onpremcsrvm01 --size Standard_DS3_v2 --nics onpremcsroutside-nic onpremcsrinside-nic  --image cisco:cisco-csr-1000v:17_2_1-byol:17.2.120200508 --admin-username azureuser --admin-password Msft123Msft123 --no-wait
+```
+
+SSH to the CSR and paste in the below Cisco config. Make sure to change "Azure-VNGpubip1" and "Azure-VNGpubip2". 
+
+<pre lang="...">
+ip route 192.168.0.0 255.255.255.0 10.1.1.1
+
+crypto ikev2 proposal Azure-Ikev2-Proposal 
+ encryption aes-cbc-256
+ integrity sha1
+ group 2
+!
+crypto ikev2 policy Azure-Ikev2-Policy 
+ match address local 192.168.1.4
+ proposal Azure-Ikev2-Proposal
+!         
+crypto ikev2 keyring to-onprem-keyring
+ peer 52.162.180.15
+  address 52.162.180.15
+  pre-shared-key Msft123Msft123
+ !
+ peer 20.80.20.211
+  address 20.80.20.211
+  pre-shared-key Msft123Msft123
+ !
+crypto ikev2 profile Azure-Ikev2-Profile
+ match address local 10.1.0.4
+ match identity remote address 52.162.180.15 255.255.255.255 
+ match identity remote address 20.80.20.211 255.255.255.255 
+ authentication remote pre-share
+ authentication local pre-share
+ keyring local to-onprem-keyring
+ lifetime 3600
+ dpd 10 5 on-demand
+
+crypto ipsec transform-set to-Azure-TransformSet esp-gcm 256 
+ mode tunnel
+!
+!
+crypto ipsec profile to-Azure-IPsecProfile
+ set transform-set to-Azure-TransformSet 
+ set ikev2-profile Azure-Ikev2-Profile
+ set security-association lifetime seconds 3600
+!
+interface Loopback11
+ ip address 172.16.1.1 255.255.255.255
+!
+interface Tunnel11
+ ip address 172.16.2.1 255.255.255.255
+ ip tcp adjust-mss 1350
+ tunnel source 192.168.1.4
+ tunnel mode ipsec ipv4
+ tunnel destination 52.162.180.15
+ tunnel protection ipsec profile to-Azure-IPsecProfile
+!
+interface Tunnel12
+ ip address 172.16.3.1 255.255.255.255
+ ip tcp adjust-mss 1350
+ tunnel source 192.168.1.4
+ tunnel mode ipsec ipv4
+ tunnel destination 20.80.20.211
+ tunnel protection ipsec profile to-Azure-IPsecProfile
+
+router bgp 65002
+ bgp router-id 192.168.1.1
+ bgp log-neighbor-changes
+ neighbor 10.0.0.14 remote-as 65001
+ neighbor 10.0.0.14 ebgp-multihop 255
+ neighbor 10.0.0.14 update-source Loopback11
+ neighbor 10.0.0.15 remote-as 65001
+ neighbor 10.0.0.15 ebgp-multihop 255
+ neighbor 10.0.0.15 update-source Loopback11
+ !
+ address-family ipv4
+  network 192.168.0.0 mask 255.255.255.0
+  neighbor 10.0.0.14 activate
+  neighbor 10.0.0.15 activate
+  maximum-paths 2
+ exit-address-family
+
+ip route 10.0.0.14 255.255.255.255 Tunnel11
+ip route 10.0.0.15 255.255.255.255 Tunnel12
+</pre>
+
+Test ping with spoke vm.
+
+After provisioning circuit in Equinix portal continue
+
+```azure cli
+az network express-route peering create --name "private-peering" --type "AzurePrivatePeering" --circuit-name "ercircuit-equinix-chicago" --resource-group $rg --peer-asn 65100 --primary-peer-subnet "192.168.100.128/30" --secondary-peer-subnet "192.168.100.128/30" --vlan-id <vlan_id> 
+circuit_id=$(az network express-route show -n ercircuit-equinix-chicago -g $rg -o tsv --query id)
+az network vpn-connection create -n erconnection -g $rg --vnet-gateway1 az-ergw --express-route-circuit2 $circuit_id
+```
+
+
 Build the AWS resources using the AWS CLI.
 
 1. To start AWS CloudShell:
@@ -126,13 +251,10 @@ aws ec2 create-tags --resources $EC2_ID --tags "Key=Name,Value=$EC2_NAME" --regi
 ```
 
 ```aws cli
-** Customer Gateway, VPW and VNC**
-aws ec2 create-customer-gateway --type ipsec.1 --public-ip <Azure VPN GW - Public IP Address> --bgp-asn 65001
-CGW_ID=$(aws ec2 describe-customer-gateways --filters Name=bgp-asn,Values=65001 --query 'CustomerGateways[*].{CustomerGatewayId:CustomerGatewayId}' --output text --region $AWS_REGION)
+** Customer Gateway, VPW**
 aws ec2 create-vpn-gateway --type ipsec.1 --amazon-side-asn 65002
 VGW_ID=$(aws ec2 describe-vpn-gateways --filters Name=amazon-side-asn,Values=65002 --query 'VpnGateways[*].{VpnGatewayId:VpnGatewayId}' --output text --region $AWS_REGION)
 aws ec2 attach-vpn-gateway --vpn-gateway-id $VGW_ID --vpc-id $VPC_ID
-aws ec2 create-vpn-connection --type ipsec.1 --customer-gateway-id $CGW_ID --vpn-gateway-id $VGW_ID --options TunnelOptions='[{TunnelInsideCidr=169.254.21.0/30,PreSharedKey=Msft123Msft123},{TunnelInsideCidr=169.254.21.10/30,PreSharedKey=Msft123Msft123}]'
 ```
 
 ```aws cli
