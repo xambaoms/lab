@@ -7,9 +7,9 @@ There is includes billable components of Equinix. You can also [check out the Eq
 
 > Choose the regions in the cloud providers near the Equinix Cloud Exchange (ECX). 
 
-Below the draw of our lab:
+The following diagram shows the architecture that you create in this article:
 
-![Network Architecture](/images/lab-architeture.png)
+![Network Architecture](./images/lab-architeture.png)
 
 
  All Azure configs are done in Azure CLI and AWS CLI and, you can change them as needed to match your environment. 
