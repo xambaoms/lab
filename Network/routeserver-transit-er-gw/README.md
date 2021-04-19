@@ -7,6 +7,9 @@ There is includes billable components of Equinix. You can also [check out the Eq
 
 > Choose the regions in the cloud providers near the Equinix Cloud Exchange (ECX). 
 
+ [ExpressRoute partners and peering locations](https://docs.microsoft.com/en-us/azure/expressroute/expressroute-locations-providers)</br>
+ [AWS Direct Connect Locations](https://aws.amazon.com/directconnect/locations/)
+
 The following diagram shows the architecture that you create in this article:
 
 ![Network Architecture](./images/lab-architeture.png)
@@ -16,7 +19,7 @@ The following diagram shows the architecture that you create in this article:
 
  **References:**</br>
  [What is Azure Route Server](https://docs.microsoft.com/en-us/azure/route-server/overview)</br>
- [Azure Route Server: super powers for your Network Virtual Appliance](https://blog.cloudtrooper.net/2021/03/03/azure-route-server-super-powers-for-your-network-virtual-appliance/)</br>
+ [Azure Route Server: super powers for your Network Virtual Appliance](https://blog.cloudtrooper.net/2021/03/03/azure-route-server-super-powers-for-your-network-virtual-appliance/)
  
 
 ## Prerequisites
