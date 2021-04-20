@@ -243,7 +243,7 @@ You can leave the remaining fields blank. If you're not using the free trial, yo
 
 Provisioning a device can take a couple of minutes. After the device is provisioned and available, you receive an email at the notification address. The status changes to Provisioned.
 
-![Equinix vRouter](./images/equinix-vrouter2.png)
+![Equinix vRouter](./images/equinix-vrouter2.PNG)
 
 #### Equinix Set Up - Equinix Network Edge router to Partner Interconnect
 
@@ -251,24 +251,24 @@ Provisioning a device can take a couple of minutes. After the device is provisio
 2. Under Frequent Connections, select **Azure**
 3. Click Create a Connection to Azure ExpressRoute.
 
-![Equinix vRouter](./images/equinix-vrouter3.png)
+![Equinix vRouter](./images/equinix-vrouter3.PNG)
 
 4. Select the origin region and virtual device.
 
-![Equinix vRouter](./images/equinix-vrouter4.png)
+![Equinix vRouter](./images/equinix-vrouter4.PNG)
 
 5. On the Connection Details page, provide the following details:
     - For Primary Connection Information, enter a name (**azure-primary-link**)
     - For Secondary Connection Information, enter a name (**azure-secondary-link**)
     - For Service Key, enter with an **Azure ExpressRoute Circuit - Service Key**
 
-![Equinix vRouter](./images/equinix-vrouter5.png)
+![Equinix vRouter](./images/equinix-vrouter5.PNG)
 
 6. Check out the connection speed, and then click Next.
 7. Verify the connection details and the notification email, and then click Submit your Order.
 8. On the Connection Page, click on Azure Connection, get the VLAN ID to add on the Azure ExpressRoute Circuit, and configure the Primary BGP Information and Secondary BGP Information with the following picture:
 
-![Equinix vRouter](./images/equinix-vrouter6.png)
+![Equinix vRouter](./images/equinix-vrouter6.PNG)
 
 After you were provision the circuit in the Equinix portal, continue the set up on the Azure Portal using the Azure CLI.
 
