@@ -34,7 +34,7 @@ az account list --output table
 az account set --subscription "My Subscription"
 ```
 ## Lab
-
+### Azure Set Up
 Create the Lab environment using the Azure CLI on Azure Cloud Shell for Azure resources.
 
 1. To start Azure Cloud Shell:
@@ -111,7 +111,7 @@ az network nic create --name onpremcsrinside-nic  -g $rg --subnet insidesidesubn
 az vm create --resource-group $rg --name onpremcsrvm01 --size Standard_DS3_v2 --nics onpremcsroutside-nic onpremcsrinside-nic  --image cisco:cisco-csr-1000v:17_2_1-byol:17.2.120200508 --admin-username azureuser --admin-password Msft123Msft123 --no-wait
 ```
 
-> After the gateway and CSR have been created, document the public IP address, BGP peer, and ASN for both. 
+After the gateway and CSR have been created, document the public IP address, BGP peer, and ASN for both. 
 
 ```azure cli
 az network vnet-gateway list --query [].[name,bgpSettings.asn,bgpSettings.bgpPeeringAddress] -o table --resource-group $rg
@@ -120,14 +120,14 @@ az network public-ip show -g $rg -n <Azure-VNGpubip2> --query "{address: ipAddre
 az network public-ip show -g $rg -n <CSR1PublicIP> --query "{address: ipAddress}"
 ```
 
-Create Local Network Gateway and Connection . The 192.168.1.1 addrees is the IP of the tunnel interface on the CSR in BGP ASN 65002.
+Create Local Network Gateway and Connection. The 172.16.1.1 address is the IP of the loopback interface on the Cisco CSR in BGP ASN 65002.
 
 ```azure cli
 az network local-gateway create --gateway-ip-address "insert Cisco CSR Public IP" --name to-onprem --resource-group $rg --local-address-prefixes 172.16.1.1/32 --asn 65002 --bgp-peering-address 172.16.1.1
 az network vpn-connection create --name to-onprem --resource-group $rg --vnet-gateway1 azure-vpngw -l $location --shared-key Msft123Msft123 --local-gateway2 to-onprem --enable-bgp
 ```
 
-SSH to the CSR and paste in the below Cisco config. Make sure to change "Azure-VNGpubip1" and "Azure-VNGpubip2". 
+Connect via SSH to the Cisco CSR and paste in the below config. Make sure to change "Azure-VNGpubip1" and "Azure-VNGpubip2". 
 
 <pre lang="...">
 ip route 192.168.0.0 255.255.255.0 10.1.1.1
@@ -142,18 +142,18 @@ crypto ikev2 policy Azure-Ikev2-Policy
  proposal Azure-Ikev2-Proposal
 !         
 crypto ikev2 keyring to-onprem-keyring
- peer 52.162.180.15
-  address 52.162.180.15
+ peer <Azure-VNGpubip1>
+  address <Azure-VNGpubip1>
   pre-shared-key Msft123Msft123
  !
- peer 20.80.20.211
-  address 20.80.20.211
+ peer <Azure-VNGpubip2>
+  address <Azure-VNGpubip2>
   pre-shared-key Msft123Msft123
  !
 crypto ikev2 profile Azure-Ikev2-Profile
  match address local 10.1.0.4
- match identity remote address 52.162.180.15 255.255.255.255 
- match identity remote address 20.80.20.211 255.255.255.255 
+ match identity remote address <Azure-VNGpubip1> 255.255.255.255 
+ match identity remote address <Azure-VNGpubip2> 255.255.255.255 
  authentication remote pre-share
  authentication local pre-share
  keyring local to-onprem-keyring
@@ -177,7 +177,7 @@ interface Tunnel11
  ip tcp adjust-mss 1350
  tunnel source 192.168.1.4
  tunnel mode ipsec ipv4
- tunnel destination 52.162.180.15
+ tunnel destination <Azure-VNGpubip1>
  tunnel protection ipsec profile to-Azure-IPsecProfile
 !
 interface Tunnel12
@@ -185,7 +185,7 @@ interface Tunnel12
  ip tcp adjust-mss 1350
  tunnel source 192.168.1.4
  tunnel mode ipsec ipv4
- tunnel destination 20.80.20.211
+ tunnel destination <Azure-VNGpubip2>
  tunnel protection ipsec profile to-Azure-IPsecProfile
 
 router bgp 65002
@@ -209,16 +209,76 @@ ip route 10.0.0.14 255.255.255.255 Tunnel11
 ip route 10.0.0.15 255.255.255.255 Tunnel12
 </pre>
 
-Test ping with spoke vm.
+Connect to azlinuxvm01, open the command prompt and try to ping the onpremlinuxvm01.
+### Equinix Set UP
+#### Equinix Set Up - Creating an Equinix Network Edge router
 
-After provisioning circuit in Equinix portal continue
+1. Log in to the [Equinix Cloud Exchange portal](https://ecxfabric.equinix.com/).
+2. In the **Network Edge** drop-down menu, click **Create a Virtual Device**.
+3. If you use the Equinix trial account, skip this step, because you can create only a single router with the trial. Otherwise, on the Create an Edge Device page, click A Single 4.Edge Device without High Availability to create a single-device configuration.
+4. Click Begin Creating Edge Device(s).
+5. For your vendor device and virtual network function, select the Cisco CSR 1000V router, and then click Continue.
+6. For Location, select Chicago, and then from the drop-down list, select your Equinix account. If you are using a trial account, you can skip this step.
+7. Click Next: Device Details.
+8. On the Device Details page, provide the following details:
+    - For Device Configuration, select Equinix-Configured.
+    - For Licensing, select Subscription.
+    - For Device Resources, select 2 Cores, 4 GB Memory.
+    - For Software Package & Version, select Security for the software package and 16.09.05 for the version.
+    - For License Thoughtput, select one of the options. The minimum option (50 mbps) is sufficient for completing this lab. This value affects the license price, which is displayed after you complete the form.
+    - For Virtual Device Details, enter a device name and a host name prefix.
+    - For Device Status Notifications, enter your email address.
+    - If you're not using a trial account, choose a term length. The default is one month.
+
+You can leave the remaining fields blank. If you're not using the free trial, you can see the price overview.
+
+![Equinix vRouter](./images/equinix-vrouter.png)
+
+9. Click Next: Additional Services.
+10. On the Additional Services page, leave the default settings, and then click Next: Review.
+11. After you review the information, click Order Terms to review the terms. If you accept the terms, click Accept.
+12. Click Create Edge Device.
+13. Click Network Edge/View Virtual Devices.
+14. Click the device name and verify that the device is in either the Initializing or Provisioning state.
+
+Provisioning a device can take a couple of minutes. After the device is provisioned and available, you receive an email at the notification address. The status changes to Provisioned.
+
+![Equinix vRouter](./images/equinix-vrouter2.png)
+
+#### Equinix Set Up - Equinix Network Edge router to Partner Interconnect
+
+1. In the Equinix ECX portal, click Connections and then click Create Connection.
+2. Under Frequent Connections, select **Azure**
+3. Click Create a Connection to Azure ExpressRoute.
+
+![Equinix vRouter](./images/equinix-vrouter3.png)
+
+4. Select the origin region and virtual device.
+
+![Equinix vRouter](./images/equinix-vrouter4.png)
+
+5. On the Connection Details page, provide the following details:
+    - For Primary Connection Information, enter a name (**azure-primary-link**)
+    - For Secondary Connection Information, enter a name (**azure-secondary-link**)
+    - For Service Key, enter with an **Azure ExpressRoute Circuit - Service Key**
+
+![Equinix vRouter](./images/equinix-vrouter5.png)
+
+6. Check out the connection speed, and then click Next.
+7. Verify the connection details and the notification email, and then click Submit your Order.
+8. On the Connection Page, click on Azure Connection, get the VLAN ID to add on the Azure ExpressRoute Circuit, and configure the Primary BGP Information and Secondary BGP Information with the following picture:
+
+![Equinix vRouter](./images/equinix-vrouter6.png)
+
+After you were provision the circuit in the Equinix portal, continue the set up on the Azure Portal using the Azure CLI.
 
 ```azure cli
-az network express-route peering create --name "private-peering" --type "AzurePrivatePeering" --circuit-name "ercircuit-equinix-chicago" --resource-group $rg --peer-asn 65100 --primary-peer-subnet "192.168.100.128/30" --secondary-peer-subnet "192.168.100.128/30" --vlan-id <vlan_id> 
+** ER - Configuration  **
+az network express-route peering create --name "private-peering" --type "AzurePrivatePeering" --circuit-name "ercircuit-equinix-chicago" --resource-group $rg --peer-asn 65100 --primary-peer-subnet "192.168.100.128/30" --secondary-peer-subnet "192.168.100.128/30" --vlan-id <vlan_id_by_equinix> 
 circuit_id=$(az network express-route show -n ercircuit-equinix-chicago -g $rg -o tsv --query id)
 az network vpn-connection create -n erconnection -g $rg --vnet-gateway1 az-ergw --express-route-circuit2 $circuit_id
 ```
-
+### AWS Set Up
 
 Build the AWS resources using the AWS CLI.
 
