@@ -34,7 +34,7 @@ az account list --output table
 az account set --subscription "My Subscription"
 ```
 ## Lab
-### Azure Set Up
+### Azure
 Create the Lab environment using the Azure CLI on Azure Cloud Shell for Azure resources.
 
 1. To start Azure Cloud Shell:
@@ -210,8 +210,8 @@ ip route 10.0.0.15 255.255.255.255 Tunnel12
 </pre>
 
 Connect to azlinuxvm01, open the command prompt and try to ping the onpremlinuxvm01.
-### Equinix Set UP
-#### Equinix Set Up - Creating an Equinix Network Edge router
+### Equinix
+#### Creating an Equinix Network Edge router
 
 1. Log in to the [Equinix Cloud Exchange portal](https://ecxfabric.equinix.com/).
 2. In the **Network Edge** drop-down menu, click **Create a Virtual Device**.
@@ -245,7 +245,7 @@ Provisioning a device can take a couple of minutes. After the device is provisio
 
 ![Equinix vRouter](./images/equinix-vrouter2.PNG)
 
-#### Equinix Set Up - Equinix Network Edge router to Partner Interconnect
+#### Creating an Azure connection on the Equinix Network Edge vRouter
 
 1. In the Equinix ECX portal, click Connections and then click Create Connection.
 2. Under Frequent Connections, select **Azure**
@@ -270,6 +270,21 @@ Provisioning a device can take a couple of minutes. After the device is provisio
 
 ![Equinix vRouter](./images/equinix-vrouter6.PNG)
 
+#### Creating an AWS connection on the Equinix Network Edge vRouter
+
+1. In the Equinix ECX portal, click Connections, and then click Create Connection.
+2. Under Frequent Connections, select Amazon Web Services.
+3. In AWS Direct Connect, click Create Connection.
+4. After reviewing the directions, click Create a Connection to Amazon Web Services.
+5. Select the origin region and virtual device. If your organization manages a high number of ports and devices, scroll the list to find your selection.
+6. Select Chicago, then click Next.
+7. Complete the Connection Information (for your records only) and **AWS Account ID** fields. Remove any spaces or dashes when you enter the account ID, which consists of 12 numbers. For more information, see the AWS documentation about how to find your account ID.
+8. Select a connection speed, then click Next.
+
+![Equinix vRouter](./images/equinix-vrouter7.PNG)
+
+9. Verify the connection details and the notification email, and then click Submit your Order.
+
 After you were provision the circuit in the Equinix portal, continue the set up on the Azure Portal using the Azure CLI.
 
 ```azure cli
@@ -278,7 +293,7 @@ az network express-route peering create --name "private-peering" --type "AzurePr
 circuit_id=$(az network express-route show -n ercircuit-equinix-chicago -g $rg -o tsv --query id)
 az network vpn-connection create -n erconnection -g $rg --vnet-gateway1 az-ergw --express-route-circuit2 $circuit_id
 ```
-### AWS Set Up
+### AWS
 
 Build the AWS resources using the AWS CLI.
 
