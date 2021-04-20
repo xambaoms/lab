@@ -431,7 +431,7 @@ az network vnet-gateway list-learned-routes -g $rg -n azure-vpngw -o table
 az network vnet-gateway list-learned-routes -g $rg -n azure-ergw -o table
 ```
 
-You can test the connectivity between Azure, Onpremisses and AWS, using the ping command: **ping 10.1.1.10** or **ping 10.1.1.10**
+You can test the connectivity between Azure, Onpremisses and AWS, using the ping command: **ping 10.1.1.10**,  **ping 10.2.1.10**, and **ping 192.168.0.10**.
 
 ## Clean All Resources after the lab
 
