@@ -232,7 +232,7 @@ Connect to azlinuxvm01, open the command prompt and try to ping the onpremlinuxv
 
 You can leave the remaining fields blank. If you're not using the free trial, you can see the price overview.
 
-![Equinix vRouter](./images/equinix-vrouter.png)
+![Equinix vRouter](./images/equinix-vrouter.PNG)
 
 9. Click Next: Additional Services.
 10. On the Additional Services page, leave the default settings, and then click Next: Review.
