@@ -270,6 +270,14 @@ Provisioning a device can take a couple of minutes. After the device is provisio
 
 ![Equinix vRouter](./images/equinix-vrouter6.PNG)
 
+After you were provision the circuit in the Equinix portal, continue the set up on the Azure Portal using the Azure CLI.
+
+```azure cli
+** ER - Configuration  **
+az network express-route peering create --name "private-peering" --type "AzurePrivatePeering" --circuit-name "ercircuit-equinix-chicago" --resource-group $rg --peer-asn 65100 --primary-peer-subnet "192.168.100.128/30" --secondary-peer-subnet "192.168.100.128/30" --vlan-id <vlan_id_by_equinix> 
+circuit_id=$(az network express-route show -n ercircuit-equinix-chicago -g $rg -o tsv --query id)
+az network vpn-connection create -n erconnection -g $rg --vnet-gateway1 az-ergw --express-route-circuit2 $circuit_id
+```
 #### Creating an AWS connection on the Equinix Network Edge vRouter
 
 1. In the Equinix ECX portal, click Connections, and then click Create Connection.
@@ -284,15 +292,6 @@ Provisioning a device can take a couple of minutes. After the device is provisio
 ![Equinix vRouter](./images/equinix-vrouter7.PNG)
 
 9. Verify the connection details and the notification email, and then click Submit your Order.
-
-After you were provision the circuit in the Equinix portal, continue the set up on the Azure Portal using the Azure CLI.
-
-```azure cli
-** ER - Configuration  **
-az network express-route peering create --name "private-peering" --type "AzurePrivatePeering" --circuit-name "ercircuit-equinix-chicago" --resource-group $rg --peer-asn 65100 --primary-peer-subnet "192.168.100.128/30" --secondary-peer-subnet "192.168.100.128/30" --vlan-id <vlan_id_by_equinix> 
-circuit_id=$(az network express-route show -n ercircuit-equinix-chicago -g $rg -o tsv --query id)
-az network vpn-connection create -n erconnection -g $rg --vnet-gateway1 az-ergw --express-route-circuit2 $circuit_id
-```
 ### AWS
 
 Build the AWS resources using the AWS CLI.
@@ -306,12 +305,12 @@ Build the AWS resources using the AWS CLI.
 
 ```aws cli
 ** Variables, VPC and Subnets  **
-AWS_REGION="us-east-1"
+AWS_REGION="us-east-2"
 VPC_NAME="vpc-us-aws"
 VPC_CIDR="10.2.0.0/16"
 SUBNET_PRIVATE_NAME="ec2subnet"
 SUBNET_PRIVATE_CIDR="10.2.1.0/24"
-ROUTE_TABLE_NAME="rt-ec2subnet"'
+ROUTE_TABLE_NAME="rt-ec2subnet"
 EC2_NAME="awslinuxvm01"
 VPC_ID=$(aws ec2 create-vpc --cidr-block $VPC_CIDR --query 'Vpc.{VpcId:VpcId}' --output text --region $AWS_REGION)
 aws ec2 create-tags --resources $VPC_ID --tags "Key=Name,Value=$VPC_NAME" --region $AWS_REGION
@@ -332,11 +331,12 @@ aws ec2 modify-subnet-attribute --subnet-id $SUBNET_PRIVATE_ID --map-public-ip-o
 
 ```aws cli
 ** EC2, Security Group amd Key Pair **
-aws ec2 create-security-group --group-name sg_ec2 --description "Lab - Azure VPN Gateway to AWS VGW with IKEv2 and BGP" --vpc-id $VPC_ID
+aws ec2 create-security-group --group-name sg_ec2 --description "Lab - Azure Route Server - Enable Transit Between ExpressRoute and Azure VPN Gateway" --vpc-id $VPC_ID
 SG_ID=$(aws ec2 describe-security-groups --filters Name=group-name,Values=sg_ec2 --query "SecurityGroups[*].{GroupId:GroupId}" --output text --region $AWS_REGION)
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 22 --cidr 0.0.0.0/0
+aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol icmp --port -1 --cidr 0.0.0.0/0
 aws ec2 create-key-pair --key-name aws-key-ec2 --query 'KeyMaterial' --output text > aws-key-ec2.pem
-aws ec2 run-instances --image-id ami-0885b1f6bd170450c --security-group-ids $SG_ID --instance-type t2.micro --key-name aws-key-ec2 --private-ip-address 10.2.1.10 --subnet-id $SUBNET_PRIVATE_ID
+aws ec2 run-instances --image-id ami-08962a4068733a2b6 --security-group-ids $SG_ID --instance-type t2.micro --key-name aws-key-ec2 --private-ip-address 10.2.1.10 --subnet-id $SUBNET_PRIVATE_ID
 EC2_ID=$(aws ec2 describe-instances --filters Name=network-interface.addresses.private-ip-address,Values=10.2.1.10 --query 'Reservations[*].Instances[*].{Instance:InstanceId}' --output text --region $AWS_REGION)
 aws ec2 create-tags --resources $EC2_ID --tags "Key=Name,Value=$EC2_NAME" --region $AWS_REGION
 ```
@@ -344,14 +344,31 @@ aws ec2 create-tags --resources $EC2_ID --tags "Key=Name,Value=$EC2_NAME" --regi
 ```aws cli
 ** Customer Gateway, VPW**
 aws ec2 create-vpn-gateway --type ipsec.1 --amazon-side-asn 65003
-VGW_ID=$(aws ec2 describe-vpn-gateways --filters Name=amazon-side-asn,Values=65003 --query 'VpnGateways[*].{VpnGatewayId:VpnGatewayId}' --output text --region $AWS_REGION)
-aws ec2 attach-vpn-gateway --vpn-gateway-id $VGW_ID --vpc-id $VPC_ID
-aws ec2 enable-vgw-route-propagation --route-table-id $ROUTE_TABLE_ID --gateway-id $VGW_ID 
+VPG_ID=$(aws ec2 describe-vpn-gateways --filters Name=amazon-side-asn,Values=65003 --query 'VpnGateways[*].{VpnGatewayId:VpnGatewayId}' --output text --region $AWS_REGION)
+aws ec2 attach-vpn-gateway --vpn-gateway-id $VPG_ID --vpc-id $VPC_ID
+aws ec2 enable-vgw-route-propagation --route-table-id $ROUTE_TABLE_ID --gateway-id $VPG_ID 
 ```
+Save the connection ID and VLAN ID of your new AWS Direct Connect connection to an environment variable:
 
 ```aws cli
 CONNECTION_ID=$(aws directconnect describe-connections --output json | jq '.connections[] | select(.connectionName=="equinix-aws") | .connectionId' -r)
-VLAN_ID=$(aws directconnect describe-connections --output json | jq '.connections[] | select(.connectionName=="equinix-aws") | .vlan)
+VLAN_ID=$(aws directconnect describe-connections --output json | jq '.connections[] | select(.connectionName=="equinix-aws") | .vlan')
+```
+
+Confirm the creation of the hosted connection:
+
+```aws cli
+aws directconnect confirm-connection --connection-id $CONNECTION_ID
+```
+
+Check the status of the Direct Connect connection and 
+
+```aws cli
+aws directconnect describe-connections --output json | jq '.connections[] | select(.connectionName=="equinix-aws") | .connectionState)
+```
+Create a private virtual interface:
+
+```aws cli
 aws directconnect create-private-virtual-interface --connection-id $CONNECTION_ID --new-private-virtual-interface virtualInterfaceName=EquinixVIF,asn=65100,virtualGatewayId=$VPG_ID,vlan=$VLAN_ID,authKey="f9069208a2d42a6d"
 ```
 
@@ -365,6 +382,8 @@ In the output, note the values for the BGP peering parameters amazonAddress, cus
 
 Configure AWS BGP peering on the ECX portal.
 
+![Equinix vRouter](./images/equinix-vrouter9.PNG)
+
 1. In the Equinix ECX portal, click Network Edge, and then click view virtual devices.
 2. Select your device by name, and then under the Connections tab, click your AWS connection.
 3. Complete the following BGP session details by using the data from the AWS CLI output:
@@ -374,6 +393,8 @@ Configure AWS BGP peering on the ECX portal.
     - For Remote IP Address, use amazonAddress.
     - For BGP Authentication Key, use authKey (**f9069208a2d42a6d**).
 
+![Equinix vRouter](./images/equinix-vrouter8.PNG)
+
 4. Click Accept.
 
 After a few minutes, the BGP peering is established. You can verify it in the same connection details screen on the ECX portal.
@@ -381,34 +402,37 @@ After a few minutes, the BGP peering is established. You can verify it in the sa
 You can also verify connectivity on the AWS side. In Cloud Shell, run:
 
 ```aws cli
-aws directconnect describe-virtual-interfaces --output json| grep bgpStatus
+aws directconnect describe-virtual-interfaces --output json | grep bgpStatus
 ```
 
-After you finish to create the environment on the AWS and Equinix Side, you verify the connectivity on the Azure Side.
+Validate the BGP routes being advertised from the Azure and Onpremisses
 
-Validate VPN and ER connections status from Azure CLI.
-
-```azure cli
-az network vpn-connection show --name to-onprem --resource-group $rg
+```aws cli
+aws ec2 describe-route-tables --route-table-ids $ROUTE_TABLE_ID --query 'RouteTables[*].Routes'
 ```
+
+:warning: After you finish to create the environment on the AWS and Equinix Side, you can verify the connectivity on the Azure Side.
+
 
 Validate the BGP routes being advertised from the AWS and Onpremisses.
 
 ```azure cli
 az network vnet-gateway list-advertised-routes -g $rg -n azure-vpngw --peer 172.16.1.1 -o table
-az network vnet-gateway list-advertised-routes -g $rg -n azure-ergw --peer 172.16.1.1 -o table
+az network vnet-gateway list-advertised-routes -g $rg -n azure-ergw --peer 10.0.0.4 -o table
+az network vnet-gateway list-advertised-routes -g $rg -n azure-ergw --peer 10.0.0.5 -o table
 ```
 
-![](./images/list-advertised-routes.png)
-
-Validate the BGP routes the Azure VPN GW is receiving from the AWS.
+Validate the BGP routes the Azure VPN GW is receiving from the AWS and Onpremisses.
 
 ```azure cli
 az network vnet-gateway list-learned-routes -g $rg -n azure-vpngw -o table
-```
-![](./images/list-learned-routes.png)
+az network vnet-gateway list-learned-routes -g $rg -n azure-ergw -o table
 
-You can test the connectivity between Azure and AWS, trying to reach the Azure virtual machine from EC2 using the ping command: **ping 10.1.1.10**
+az network vnet-gateway list-learned-routes -g $rg -n northcentralus-hub-vpn-gateway -o table
+
+You can test the connectivity between Azure, Onpremisses and AWS, using the ping command: **ping 10.1.1.10** or **ping 10.1.1.10**
+
+
 ## Clean All Resources after the lab
 
 After you have successfully completed the lab, you will want to delete the Resource Groups. Run the following command on Azure Cloud Shell:
@@ -423,6 +447,15 @@ For AWS resources check out the articles:
  [How do I delete or terminate my Amazon EC2 resources?](https://aws.amazon.com/premiumsupport/knowledge-center/delete-terminate-ec2/)</br>
  [Deleting a Site-to-Site VPN connection](https://docs.aws.amazon.com/vpn/latest/s2svpn/delete-vpn.html)</br>
  [delete-vpc](https://docs.aws.amazon.com/cli/latest/reference/ec2/delete-vpc.html)
+ [AWS DirectConect - Delete connections](https://docs.aws.amazon.com/directconnect/latest/UserGuide/deleteconnection.html)
+
+Delete the Equinix vRouter
+
+1. In the Equinix Cloud Exchange portal, click Network Edge, and then click View Virtual Devices.
+2. Click the name of your virtual router.
+3. Under Connections, select the Azure connection, and then click Delete Connection.
+4. Select the AWS connection, and click Delete Connection.
+5. After the connections have been deprovisioned, click the Details tab and on the bottom of the page click Delete Device.
 
 ## Contributing
 Pull requests are welcome. For major changes. Please make sure to update tests as appropriate.
