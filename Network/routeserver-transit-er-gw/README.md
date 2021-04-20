@@ -343,43 +343,62 @@ aws ec2 create-tags --resources $EC2_ID --tags "Key=Name,Value=$EC2_NAME" --regi
 
 ```aws cli
 ** Customer Gateway, VPW**
-aws ec2 create-vpn-gateway --type ipsec.1 --amazon-side-asn 65002
-VGW_ID=$(aws ec2 describe-vpn-gateways --filters Name=amazon-side-asn,Values=65002 --query 'VpnGateways[*].{VpnGatewayId:VpnGatewayId}' --output text --region $AWS_REGION)
+aws ec2 create-vpn-gateway --type ipsec.1 --amazon-side-asn 65003
+VGW_ID=$(aws ec2 describe-vpn-gateways --filters Name=amazon-side-asn,Values=65003 --query 'VpnGateways[*].{VpnGatewayId:VpnGatewayId}' --output text --region $AWS_REGION)
 aws ec2 attach-vpn-gateway --vpn-gateway-id $VGW_ID --vpc-id $VPC_ID
-```
-
-```aws cli
 aws ec2 enable-vgw-route-propagation --route-table-id $ROUTE_TABLE_ID --gateway-id $VGW_ID 
 ```
 
-Configure the APIPA IP address space on Azure VPN Gateway to connect with AWS VGW.
-
-1.  In Azure, add the IP address "169.254.21.2" inside VPN Gateway ("azure-vpngw") and save the configuration.
-
-![](./images/azure-vpn-config-apipa.png)
-
-
-Create Local Network Gateway and enter the "AWSVPNPublicIP" public IP. AWS BGP peer over IPSEC is in ASN 65002.
-
-```azure cli
-location='eastus2'
-rg='lab-aws-vpn-to-azurevpngw-ikev2-bgp-rg'
-az network local-gateway create --gateway-ip-address "AWSVPNPublicIP" --name to-aws --resource-group $rg --asn 65002 --local-address-prefixes 169.254.21.1/32 --bgp-peering-address 169.254.21.1
-az network vpn-connection create --name to-aws --resource-group $rg --vnet-gateway1 azure-vpngw --location $location --shared-key Msft123Msft123 --local-gateway2 to-onprem --enable-bgp
-```
-After you finish to create the environment, you need to check the Azure connection configuration.
-
-Validate VPN connection status in Azure CLI
-
-```azure cli
-az network vpn-connection show --name to-aws --resource-group $rg
+```aws cli
+CONNECTION_ID=$(aws directconnect describe-connections --output json | jq '.connections[] | select(.connectionName=="equinix-aws") | .connectionId' -r)
+VLAN_ID=$(aws directconnect describe-connections --output json | jq '.connections[] | select(.connectionName=="equinix-aws") | .vlan)
+aws directconnect create-private-virtual-interface --connection-id $CONNECTION_ID --new-private-virtual-interface virtualInterfaceName=EquinixVIF,asn=65100,virtualGatewayId=$VPG_ID,vlan=$VLAN_ID,authKey="f9069208a2d42a6d"
 ```
 
-Validate the BGP routes being advertised from the Azure VPN GW to the AWS.
+Show details about the virtual interface:
+
+```aws cli
+aws directconnect describe-virtual-interfaces --output json
+```
+
+In the output, note the values for the BGP peering parameters amazonAddress, customerAddress, amazonSideAsn,asn, AuthKey and the virtualInterfaceId. You use these parameters in the Equinix portal.
+
+Configure AWS BGP peering on the ECX portal.
+
+1. In the Equinix ECX portal, click Network Edge, and then click view virtual devices.
+2. Select your device by name, and then under the Connections tab, click your AWS connection.
+3. Complete the following BGP session details by using the data from the AWS CLI output:
+    - For Local ASN, use the value: **65100**
+    - For Local IP Address, use customerAddress.
+    - For Remote ASN,  use amazonSideASN.
+    - For Remote IP Address, use amazonAddress.
+    - For BGP Authentication Key, use authKey (**f9069208a2d42a6d**).
+
+4. Click Accept.
+
+After a few minutes, the BGP peering is established. You can verify it in the same connection details screen on the ECX portal.
+
+You can also verify connectivity on the AWS side. In Cloud Shell, run:
+
+```aws cli
+aws directconnect describe-virtual-interfaces --output json| grep bgpStatus
+```
+
+After you finish to create the environment on the AWS and Equinix Side, you verify the connectivity on the Azure Side.
+
+Validate VPN and ER connections status from Azure CLI.
 
 ```azure cli
-az network vnet-gateway list-advertised-routes -g $rg -n azure-vpngw --peer 169.254.21.1 -o table
+az network vpn-connection show --name to-onprem --resource-group $rg
 ```
+
+Validate the BGP routes being advertised from the AWS and Onpremisses.
+
+```azure cli
+az network vnet-gateway list-advertised-routes -g $rg -n azure-vpngw --peer 172.16.1.1 -o table
+az network vnet-gateway list-advertised-routes -g $rg -n azure-ergw --peer 172.16.1.1 -o table
+```
+
 ![](./images/list-advertised-routes.png)
 
 Validate the BGP routes the Azure VPN GW is receiving from the AWS.
