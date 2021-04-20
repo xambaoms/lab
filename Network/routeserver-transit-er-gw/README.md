@@ -427,11 +427,9 @@ Validate the BGP routes the Azure VPN GW is receiving from the AWS and Onpremiss
 ```azure cli
 az network vnet-gateway list-learned-routes -g $rg -n azure-vpngw -o table
 az network vnet-gateway list-learned-routes -g $rg -n azure-ergw -o table
-
-az network vnet-gateway list-learned-routes -g $rg -n northcentralus-hub-vpn-gateway -o table
+```
 
 You can test the connectivity between Azure, Onpremisses and AWS, using the ping command: **ping 10.1.1.10** or **ping 10.1.1.10**
-
 
 ## Clean All Resources after the lab
 
