@@ -22,6 +22,8 @@ The following diagram shows the architecture that you create in this article:
  [Azure Route Server: super powers for your Network Virtual Appliance](https://blog.cloudtrooper.net/2021/03/03/azure-route-server-super-powers-for-your-network-virtual-appliance/)</br>
  [How Network Edge Virtualization for Network Services Takes You Beyond the Data Center](https://blog.equinix.com/blog/2019/11/13/how-network-edge-virtualization-for-network-services-takes-you-beyond-the-data-center/)
  
+
+ :warning: Azure Route Server (Preview) is currently in public preview.
 ## Prerequisites
 
 - Install the Az CLI [Install the Azure CLI](https://docs.microsoft.com/pt-br/cli/azure/install-azure-cli) or use the [Azure Cloud Shell](https://docs.microsoft.com/en-us/azure/cloud-shell/overview) to run it.
