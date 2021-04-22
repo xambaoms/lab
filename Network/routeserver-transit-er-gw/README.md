@@ -15,7 +15,7 @@ The following diagram shows the architecture that you create in this article:
 ![Network Architecture](./images/lab-architeture.png)
 
 
- All Azure configs are done in Azure CLI and AWS CLI and, you can change them as needed to match your environment. 
+ All Azure and AWS configs are done in Azure CLI or AWS CLI, and you can change them as needed to match your environment. 
 
  **References:**</br>
  [What is Azure Route Server](https://docs.microsoft.com/en-us/azure/route-server/overview)</br>
@@ -211,7 +211,7 @@ ip route 10.0.0.14 255.255.255.255 Tunnel11
 ip route 10.0.0.15 255.255.255.255 Tunnel12
 </pre>
 
-Connect to azlinuxvm01, open the command prompt and try to ping the onpremlinuxvm01.
+Connect to azlinuxvm01, and try to ping the onpremlinuxvm01.
 ### Equinix
 #### Creating an Equinix Network Edge router
 
@@ -363,7 +363,7 @@ Confirm the creation of the hosted connection:
 aws directconnect confirm-connection --connection-id $CONNECTION_ID
 ```
 
-Check the status of the Direct Connect connection and 
+Check the status of the Direct Connect connection: 
 
 ```aws cli
 aws directconnect describe-connections --output json | jq '.connections[] | select(.connectionName=="equinix-aws") | .connectionState)
@@ -374,15 +374,13 @@ Create a private virtual interface:
 aws directconnect create-private-virtual-interface --connection-id $CONNECTION_ID --new-private-virtual-interface virtualInterfaceName=EquinixVIF,asn=65100,virtualGatewayId=$VPG_ID,vlan=$VLAN_ID,authKey="f9069208a2d42a6d"
 ```
 
-Show details about the virtual interface:
+Show details about the AWS virtual interface:
 
 ```aws cli
 aws directconnect describe-virtual-interfaces --output json
 ```
 
-In the output, note the values for the BGP peering parameters amazonAddress, customerAddress, amazonSideAsn,asn, AuthKey and the virtualInterfaceId. You use these parameters in the Equinix portal.
-
-Configure AWS BGP peering on the ECX portal.
+In the output, note the values for the BGP peering parameters amazonAddress, customerAddress, amazonSideAsn,asn, AuthKey and the virtualInterfaceId. You use these parameters in the Equinix portal. Configure AWS BGP peering on the ECX portal.
 
 ![Equinix vRouter](./images/equinix-vrouter9.PNG)
 
@@ -399,7 +397,7 @@ Configure AWS BGP peering on the ECX portal.
 
 4. Click Accept.
 
-After a few minutes, the BGP peering is established. You can verify it in the same connection details screen on the ECX portal.
+After a few minutes, the BGP peering will be established. You can verify it in the same connection details screen on the ECX portal.
 
 You can also verify connectivity on the AWS side. In Cloud Shell, run:
 
@@ -407,7 +405,7 @@ You can also verify connectivity on the AWS side. In Cloud Shell, run:
 aws directconnect describe-virtual-interfaces --output json | grep bgpStatus
 ```
 
-Validate the BGP routes being advertised from the Azure and Onpremisses
+Validate the BGP routes being advertised from the Azure and On-Premisses Side.
 
 ```aws cli
 aws ec2 describe-route-tables --route-table-ids $ROUTE_TABLE_ID --query 'RouteTables[*].Routes'
@@ -416,7 +414,7 @@ aws ec2 describe-route-tables --route-table-ids $ROUTE_TABLE_ID --query 'RouteTa
 :warning: After you finish to create the environment on the AWS and Equinix Side, you can verify the connectivity on the Azure Side.
 
 
-Validate the BGP routes being advertised from the AWS and Onpremisses.
+Validate the BGP routes being advertised from the AWS and On-Premisses Side.
 
 ```azure cli
 az network vnet-gateway list-advertised-routes -g $rg -n azure-vpngw --peer 172.16.1.1 -o table
@@ -424,14 +422,14 @@ az network vnet-gateway list-advertised-routes -g $rg -n azure-ergw --peer 10.0.
 az network vnet-gateway list-advertised-routes -g $rg -n azure-ergw --peer 10.0.0.5 -o table
 ```
 
-Validate the BGP routes the Azure VPN GW is receiving from the AWS and Onpremisses.
+Validate the BGP routes the Azure VPN GW and ER GW are receiving from the AWS and On-Premisses Sides.
 
 ```azure cli
 az network vnet-gateway list-learned-routes -g $rg -n azure-vpngw -o table
 az network vnet-gateway list-learned-routes -g $rg -n azure-ergw -o table
 ```
 
-You can test the connectivity between Azure, Onpremisses and AWS, using the ping command: **ping 10.1.1.10**,  **ping 10.2.1.10**, and **ping 192.168.0.10**.
+You can test the connectivity between Azure, On-Premises, and AWS, using the ping command on the virtual machines: **ping 10.1.1.10**, **ping 10.2.1.10**, and **ping 192.168.0.10**.
 
 ## Clean All Resources after the lab
 
