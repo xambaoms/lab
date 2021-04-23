@@ -88,6 +88,9 @@ az network vnet peering update -g $rg -n to-spokevnet --vnet-name az-hub-vnet --
 az network vnet peering update -g $rg -n to-hubvnet --vnet-name az-spoke-vnet --set useRemoteGateways=true --set allowForwardedTraffic=true
 ```
 
+> For ExpressRoute and Site-to-Site VPN connections to coexist, you need to keep the AS value 65515 for Azure VPN Gateway.</br>
+> [Configure ExpressRoute and Site-to-Site coexisting connections using PowerShell](https://docs.microsoft.com/en-us/azure/expressroute/expressroute-howto-coexist-resource-manager)
+
 ```azure cli
 ** Azure Route Server**
 $subnet_id=$(az network vnet subnet show -n "RouteServerSubnet" --vnet-name "az-hub-vnet" -g $rg --query id -o tsv)
