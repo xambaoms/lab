@@ -51,6 +51,7 @@ Create the Lab environment using the Azure CLI on Azure Cloud Shell for Azure re
 ** Virtual Network - HUB **
 location='northcentralus'
 rg='enable-transit-routeserver'
+er_location='Chicago'
 az group create --name $rg --location $location
 az network vnet create --resource-group $rg --name az-hub-vnet --location $location --address-prefixes 10.0.0.0/16 --subnet-name GatewaySubnet --subnet-prefix 10.0.1.0/24
 az network vnet subnet create -g $rg --vnet-name "az-hub-vnet" --name "RouteServerSubnet" --address-prefix "10.0.2.0/24"
@@ -83,7 +84,7 @@ az network public-ip create --name azure-vpngw02-pip --resource-group $rg --allo
 az network public-ip create --name azure-ergw-pip --resource-group $rg --allocation-method Dynamic
 az network vnet-gateway create --name azure-vpngw --public-ip-address azure-vpngw01-pip azure-vpngw02-pip --resource-group $rg --vnet az-hub-vnet --gateway-type Vpn --vpn-type RouteBased --sku VpnGw1 -l $location --asn 65001 --no-wait
 az network vnet-gateway create -g $rg -n azure-ergw --gateway-type ExpressRoute --sku Standard -l $location --vnet az-hub-vnet --public-ip-addresses azure-ergw-pip --no-wait
-az network express-route create -n ercircuit-equinix-chicago --peering-location $er_pop -g $rg --bandwidth 50 --provider Equinix -l Chicago --sku-family MeteredData --sku-tier Standard
+az network express-route create -n ercircuit-equinix-chicago --peering-location $er_location -g $rg --bandwidth 50 --provider Equinix -l $location --sku-family MeteredData --sku-tier Standard
 az network vnet peering update -g $rg -n to-spokevnet --vnet-name az-hub-vnet --set allowGatewayTransit=true
 az network vnet peering update -g $rg -n to-hubvnet --vnet-name az-spoke-vnet --set useRemoteGateways=true --set allowForwardedTraffic=true
 ```
