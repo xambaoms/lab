@@ -12,7 +12,7 @@ There is includes billable components of Equinix. You can also [check out the Eq
 
 The following diagram shows the architecture that you create in this article:
 
-![Network Architecture](./images/lab-architeture.png)
+![Network Architecture](../images/routeserver-transit-er-gw/lab-architeture.png)
 
 
  All Azure and AWS configs are done in Azure CLI or AWS CLI, and you can change them as needed to match your environment. 
@@ -82,14 +82,14 @@ az network vnet peering create --name to-hubvnet --resource-group $rg --vnet-nam
 az network public-ip create --name azure-vpngw01-pip --resource-group $rg --allocation-method Dynamic
 az network public-ip create --name azure-vpngw02-pip --resource-group $rg --allocation-method Dynamic
 az network public-ip create --name azure-ergw-pip --resource-group $rg --allocation-method Dynamic
-az network vnet-gateway create --name azure-vpngw --public-ip-address azure-vpngw01-pip azure-vpngw02-pip --resource-group $rg --vnet az-hub-vnet --gateway-type Vpn --vpn-type RouteBased --sku VpnGw1 -l $location --asn 65001 --no-wait
+az network vnet-gateway create --name azure-vpngw --public-ip-address azure-vpngw01-pip azure-vpngw02-pip --resource-group $rg --vnet az-hub-vnet --gateway-type Vpn --vpn-type RouteBased --sku VpnGw1 -l $location --asn 65515 --no-wait
 az network vnet-gateway create -g $rg -n azure-ergw --gateway-type ExpressRoute --sku Standard -l $location --vnet az-hub-vnet --public-ip-addresses azure-ergw-pip --no-wait
 az network express-route create -n ercircuit-equinix-chicago --peering-location $er_location -g $rg --bandwidth 50 --provider Equinix -l $location --sku-family MeteredData --sku-tier Standard
 az network vnet peering update -g $rg -n to-spokevnet --vnet-name az-hub-vnet --set allowGatewayTransit=true
 az network vnet peering update -g $rg -n to-hubvnet --vnet-name az-spoke-vnet --set useRemoteGateways=true --set allowForwardedTraffic=true
 ```
 
-> For ExpressRoute and Site-to-Site VPN connections to coexist, you need to keep the AS value 65515 for Azure VPN Gateway.</br>
+> For ExpressRoute and Site-to-Site VPN connections to coexist, you must keep the AS value 65515 for Azure VPN Gateway.</br>
 > [Configure ExpressRoute and Site-to-Site coexisting connections using PowerShell](https://docs.microsoft.com/en-us/azure/expressroute/expressroute-howto-coexist-resource-manager)
 
 ```azure cli
@@ -197,10 +197,10 @@ interface Tunnel12
 router bgp 65002
  bgp router-id 192.168.1.1
  bgp log-neighbor-changes
- neighbor 10.0.0.14 remote-as 65001
+ neighbor 10.0.0.14 remote-as 65515
  neighbor 10.0.0.14 ebgp-multihop 255
  neighbor 10.0.0.14 update-source Loopback11
- neighbor 10.0.0.15 remote-as 65001
+ neighbor 10.0.0.15 remote-as 65515
  neighbor 10.0.0.15 ebgp-multihop 255
  neighbor 10.0.0.15 update-source Loopback11
  !

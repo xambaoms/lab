@@ -32,12 +32,5 @@ After you have successfully completed the lab, you will want to delete the Resou
 ## Azure Resources
 az group delete --name $rg --location $location
 ```
-For AWS resources check out the articles:
-
- **References:**</br>
- [How do I delete or terminate my Amazon EC2 resources?](https://aws.amazon.com/premiumsupport/knowledge-center/delete-terminate-ec2/)</br>
- [Deleting a Site-to-Site VPN connection](https://docs.aws.amazon.com/vpn/latest/s2svpn/delete-vpn.html)</br>
- [delete-vpc](https://docs.aws.amazon.com/cli/latest/reference/ec2/delete-vpc.html)
-
 ## Contributing
 Pull requests are welcome. For major changes. Please make sure to update tests as appropriate.
