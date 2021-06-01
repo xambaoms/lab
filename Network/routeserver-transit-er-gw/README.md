@@ -113,7 +113,7 @@ az vm create -n onpremlinuxvm01 -g $rg --image UbuntuLTS --admin-username azureu
 ** Cisco CSR - ONPREM - VPN  **
 az network public-ip create --name onpremcsrvm01-pip --resource-group $rg --idle-timeout 30 --allocation-method Static
 az network nic create --name onpremcsroutside-nic -g $rg --subnet outsidesubnet --private-ip-address 192.168.1.4 --vnet onprem-vnet --public-ip-address onpremcsrvm01-pip --ip-forwarding true
-az network nic create --name onpremcsrinside-nic  -g $rg --subnet insidesidesubnet --private-ip-address 192.168.2.4  --vnet onprem-vnet --ip-forwarding true
+az network nic create --name onpremcsrinside-nic  -g $rg --subnet insidesubnet --private-ip-address 192.168.2.4  --vnet onprem-vnet --ip-forwarding true
 az vm create --resource-group $rg --name onpremcsrvm01 --size Standard_DS3_v2 --nics onpremcsroutside-nic onpremcsrinside-nic  --image cisco:cisco-csr-1000v:17_2_1-byol:17.2.120200508 --admin-username azureuser --admin-password Msft123Msft123 --no-wait
 ```
 
