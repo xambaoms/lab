@@ -94,7 +94,7 @@ az network vnet peering update -g $rg -n to-hubvnet --vnet-name az-spoke-vnet --
 
 ```azure cli
 ** Azure Route Server**
-$subnet_id=$(az network vnet subnet show -n "RouteServerSubnet" --vnet-name "az-hub-vnet" -g $rg --query id -o tsv)
+subnet_id=$(az network vnet subnet show -n "RouteServerSubnet" --vnet-name "az-hub-vnet" -g $rg --query id -o tsv)
 az network routeserver create -n "az-routeserver" -g $rg --hosted-subnet $subnet_id
 az network routeserver update -g $rs -n "az-routeserver" --allow-b2b-traffic true
 ```
